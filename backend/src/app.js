@@ -12,11 +12,34 @@ dotenv.config();
 const app = express();
 
 const clientUrl = process.env.CLIENT_URL || "http://localhost:3001";
+const allowedOrigins = [
+  clientUrl,
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://iqcrm-two.vercel.app",
+  "https://iqcrm.onrender.com"
+];
 
 app.use(helmet());
 app.use(
   cors({
-    origin: [clientUrl, "http://localhost:3000", "http://localhost:3001"],
+    origin(origin, callback) {
+      // Allow server-to-server / tools with no Origin
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        // allow Vercel preview deployments for this project
+        origin.endsWith(".vercel.app");
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
     credentials: false
   })
 );

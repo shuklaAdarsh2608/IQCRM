@@ -25,6 +25,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/IqLogo.svg" type="image/svg+xml" />
         {/* Inline script to set initial theme before hydration to avoid flicker */}
         <script
           dangerouslySetInnerHTML={{
