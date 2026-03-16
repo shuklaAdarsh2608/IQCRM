@@ -1,0 +1,20 @@
+import jwt from "jsonwebtoken";
+
+const { JWT_SECRET, JWT_EXPIRES_IN } = process.env;
+
+export function signToken(payload) {
+  if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN || "7d"
+  });
+}
+
+export function verifyToken(token) {
+  if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+  return jwt.verify(token, JWT_SECRET);
+}
+
