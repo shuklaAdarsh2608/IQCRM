@@ -11,6 +11,7 @@ const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
 const LIMITED_VIEW_ROLES = ["USER", "MANAGER", "TEAM_LEADER"];
 const TAB_MY_LEADS = "my";
 const TAB_ALL_LEADS = "all";
+const TAB_ASSIGNED = "assigned";
 const SEARCH_DEBOUNCE_MS = 350;
 const EXPORT_STATUS_OPTIONS = [
   "NEW",
@@ -98,8 +99,11 @@ export function LeadListTable() {
       .finally(() => setLoading(false));
   }, [effectiveTab, currentUserId, page, searchQuery]);
 
-  // Results are already filtered by API when searchQuery is set; no client-side filter needed
-  const filtered = leads;
+  // Extra client-side filter for some tabs
+  const filtered =
+    effectiveTab === TAB_ASSIGNED
+      ? leads.filter((l) => l.ownerId != null || (l.owner && l.owner.id != null))
+      : leads;
 
   // Collect all extraData keys across current filtered leads so we can show all imported headers
   const extraColumns = Array.from(
@@ -218,6 +222,17 @@ export function LeadListTable() {
                 }`}
               >
                 All leads
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab(TAB_ASSIGNED)}
+                className={`rounded-xl px-4 py-2 text-xs font-medium transition ${
+                  activeTab === TAB_ASSIGNED
+                    ? "bg-orange-500 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                }`}
+              >
+                Assigned leads
               </button>
               <Link
                 href="/dashboard/leads/import"
