@@ -194,13 +194,13 @@ export function LeadListTable() {
       className="min-w-0 rounded-2xl bg-white/90 p-4 shadow-sm sm:p-5 dark:bg-slate-900/90 dark:text-slate-100 dark:border dark:border-slate-800"
     >
       <div className="mb-4 flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between dark:border-slate-800">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           {isAdmin ? (
             <>
               <button
                 type="button"
                 onClick={() => setActiveTab(TAB_MY_LEADS)}
-                className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${
+                className={`rounded-xl px-4 py-2 text-xs font-medium transition ${
                   activeTab === TAB_MY_LEADS
                     ? "bg-orange-500 text-white shadow-sm"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
@@ -211,7 +211,7 @@ export function LeadListTable() {
               <button
                 type="button"
                 onClick={() => setActiveTab(TAB_ALL_LEADS)}
-                className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${
+                className={`rounded-xl px-4 py-2 text-xs font-medium transition ${
                   activeTab === TAB_ALL_LEADS
                     ? "bg-orange-500 text-white shadow-sm"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
@@ -221,13 +221,13 @@ export function LeadListTable() {
               </button>
               <Link
                 href="/dashboard/leads/import"
-                className="rounded-xl border-2 border-orange-400 bg-white px-4 py-2.5 text-sm font-medium text-orange-600 transition hover:bg-orange-50 dark:bg-slate-900 dark:text-orange-300 dark:hover:bg-orange-500/10"
+                className="rounded-xl border-2 border-orange-400 bg-white px-4 py-2 text-xs font-medium text-orange-600 transition hover:bg-orange-50 dark:bg-slate-900 dark:text-orange-300 dark:hover:bg-orange-500/10"
               >
                 Import
               </Link>
               <Link
                 href="/dashboard/leads/bulk-assign"
-                className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                className="rounded-xl bg-slate-100 px-4 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
               >
                 Bulk assign
               </Link>
@@ -235,7 +235,7 @@ export function LeadListTable() {
                 type="button"
                 onClick={openExportModal}
                 disabled={exportLoading}
-                className="rounded-xl border-2 border-emerald-500 bg-white px-4 py-2.5 text-sm font-medium text-emerald-600 transition hover:bg-emerald-50 disabled:opacity-50 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                className="rounded-xl border-2 border-emerald-500 bg-white px-4 py-2 text-xs font-medium text-emerald-600 transition hover:bg-emerald-50 disabled:opacity-50 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
               >
                 {exportLoading ? "Exporting…" : "Export to Excel"}
               </button>
@@ -249,18 +249,18 @@ export function LeadListTable() {
               )}
             </>
           ) : (
-            <span className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+            <span className="rounded-xl bg-slate-100 px-4 py-2 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-100">
               My leads
             </span>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 text-xs">
           <input
             type="search"
             placeholder="Search name, company, email, phone..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full min-w-[140px] max-w-[260px] rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900"
+            className="w-full min-w-[140px] max-w-[260px] rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2 text-xs outline-none placeholder:text-slate-400 focus:border-orange-300 focus:bg-white focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900"
             aria-label="Search leads"
           />
           <span className="shrink-0 rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-200">
