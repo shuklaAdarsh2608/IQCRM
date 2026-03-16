@@ -17,6 +17,7 @@ const navItemsAll = [
   { label: "Calendar", href: "/calendar" },
   { label: "Mails", href: "/mails" },
   { label: "Reports", href: "/dashboard/reports" },
+  { label: "Activity log", href: "/dashboard/activity", roles: ["SUPER_ADMIN", "ADMIN"] },
   { label: "Settings", href: "/dashboard/settings" }
 ];
 
