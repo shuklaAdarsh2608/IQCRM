@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Shield, Bell, GitBranch, Plug } from "lucide-react";
 
-const cards = [
+const BASE_CARDS = [
   {
     title: "Profile & Security",
     description: "Manage name, email, password and login security for your account.",
@@ -16,22 +17,44 @@ const cards = [
     description: "Control which events send in-app and email notifications.",
     href: "/dashboard/settings/notifications",
     icon: Bell
-  },
-  {
-    title: "Pipelines & Stages",
-    description: "Customize lead status stages and default values for your team.",
-    href: "/dashboard/settings/pipelines",
-    icon: GitBranch
-  },
-  {
-    title: "Integrations",
-    description: "Connect email, calendar and other tools to sync with IQLead.",
-    href: "/dashboard/settings/integrations",
-    icon: Plug
   }
 ];
 
 export default function DashboardSettingsPage() {
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("iqlead_user");
+      if (!raw) return;
+      const user = JSON.parse(raw);
+      setRole(user?.role || null);
+    } catch {
+      setRole(null);
+    }
+  }, []);
+
+  const isAdmin = role === "SUPER_ADMIN" || role === "ADMIN";
+
+  const cards = isAdmin
+    ? [
+        ...BASE_CARDS,
+        {
+          title: "Pipelines & Stages",
+          description: "Customize lead status stages and default values for your team.",
+          href: "/dashboard/settings/pipelines",
+          icon: GitBranch
+        },
+        {
+          title: "Integrations",
+          description: "Connect email, calendar and other tools to sync with IQLead.",
+          href: "/dashboard/settings/integrations",
+          icon: Plug
+        }
+      ]
+    : BASE_CARDS;
+
   return (
     <>
       <div className="mb-6">

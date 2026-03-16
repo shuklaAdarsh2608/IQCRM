@@ -7,6 +7,7 @@ import api from "../../../../services/api";
 
 export default function SettingsProfilePage() {
   const [profile, setProfile] = useState({ name: "", email: "" });
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState({ type: "", text: "" });
@@ -25,9 +26,13 @@ export default function SettingsProfilePage() {
         if (res.data?.success && res.data?.data) {
           const d = res.data.data;
           setProfile({ name: d.name || "", email: d.email || "" });
+          setRole(d.role || null);
         }
       })
-      .catch(() => setProfile({ name: "", email: "" }))
+      .catch(() => {
+        setProfile({ name: "", email: "" });
+        setRole(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -167,78 +172,90 @@ export default function SettingsProfilePage() {
         </form>
       </section>
 
-      <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60 dark:bg-slate-900/85 dark:ring-slate-800">
-        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-50">
-          Change password
-        </h2>
-        <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-300">
-          Set a new password for your account.
-        </p>
-        <form onSubmit={handlePasswordSubmit} className="mt-4 space-y-4">
-          <div>
-            <label
-              htmlFor="current-password"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+      {(role === "SUPER_ADMIN" || role === "ADMIN") && (
+        <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60 dark:bg-slate-900/85 dark:ring-slate-800">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-50">
+            Change password
+          </h2>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-300">
+            Set a new password for your account.
+          </p>
+          <form onSubmit={handlePasswordSubmit} className="mt-4 space-y-4">
+            <div>
+              <label
+                htmlFor="current-password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+              >
+                Current password
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) =>
+                  setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="new-password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+              >
+                New password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) =>
+                  setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                required
+                minLength={6}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="confirm-password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+              >
+                Confirm new password
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) =>
+                  setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                required
+                minLength={6}
+              />
+            </div>
+            {passwordMessage.text && (
+              <p
+                className={`text-sm ${
+                  passwordMessage.type === "success" ? "text-emerald-600" : "text-red-600"
+                }`}
+              >
+                {passwordMessage.text}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={passwordSaving}
+              className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-50"
             >
-              Current password
-            </label>
-            <input
-              id="current-password"
-              type="password"
-              value={passwordForm.currentPassword}
-              onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              required
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="new-password"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-200"
-            >
-              New password
-            </label>
-            <input
-              id="new-password"
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              required
-              minLength={6}
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="confirm-password"
-              className="block text-sm font-medium text-slate-700 dark:text-slate-200"
-            >
-              Confirm new password
-            </label>
-            <input
-              id="confirm-password"
-              type="password"
-              value={passwordForm.confirmPassword}
-              onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              required
-              minLength={6}
-            />
-          </div>
-          {passwordMessage.text && (
-            <p className={`text-sm ${passwordMessage.type === "success" ? "text-emerald-600" : "text-red-600"}`}>
-              {passwordMessage.text}
-            </p>
-          )}
-          <button
-            type="submit"
-            disabled={passwordSaving}
-            className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-50"
-          >
-            {passwordSaving ? "Updating…" : "Update password"}
-          </button>
-        </form>
-      </section>
+              {passwordSaving ? "Updating…" : "Update password"}
+            </button>
+          </form>
+        </section>
+      )}
     </div>
   );
 }
