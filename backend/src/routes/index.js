@@ -8,6 +8,7 @@ import { dashboardRouter } from "./dashboardRoutes.js";
 import { notificationRouter } from "./notificationRoutes.js";
 import { reportRouter } from "./reportRoutes.js";
 import { chatRouter } from "./chatRoutes.js";
+import { activityLogRouter } from "./activityLogRoutes.js";
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.use("/dashboard", dashboardRouter);
 router.use("/notifications", notificationRouter);
 router.use("/reports", reportRouter);
 router.use("/chats", chatRouter);
+router.use("/activity-logs", activityLogRouter);
 
 export { router as apiRouter };
 

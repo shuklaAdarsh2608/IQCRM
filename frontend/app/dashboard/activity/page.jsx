@@ -118,18 +118,23 @@ export default function ActivityLogPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <select
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-          >
-            <option value="all">All users</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role})
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-xs font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus:border-orange-400 focus:ring-2 focus:ring-orange-200/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              <option value="all">All users</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 dark:text-slate-500">
+              ▼
+            </span>
+          </div>
           <button
             type="button"
             onClick={handleExport}
