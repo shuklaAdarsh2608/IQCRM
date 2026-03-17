@@ -43,6 +43,17 @@ export function AdminDashboard() {
   const [upcomingCalls, setUpcomingCalls] = useState([]);
   const [latestLeads, setLatestLeads] = useState([]);
 
+  const revenuePercent =
+    summary.totalRevenue && summary.totalRevenue > 0
+      ? Math.min(
+          100,
+          Math.max(
+            5,
+            Math.round(Math.log10(Number(summary.totalRevenue) + 1) * 25)
+          )
+        )
+      : 0;
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -296,11 +307,31 @@ export function AdminDashboard() {
                 <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
                   {summary.totalRevenue == null
                     ? "—"
-                    : `₹${summary.totalRevenue.toLocaleString()}`}
+                    : `₹${summary.totalRevenue.toLocaleString("en-IN")}`}
                 </p>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
                   Total deal value in selected period
                 </p>
+                <div className="mt-4 w-full space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-300">
+                    <span>Revenue momentum</span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                      {revenuePercent > 0 ? `${revenuePercent}% of target*` : "No revenue yet"}
+                    </span>
+                  </div>
+                  <div className="relative h-3 overflow-hidden rounded-full bg-slate-100 shadow-inner dark:bg-slate-800">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${revenuePercent}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-amber-300"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.6),transparent_40%),radial-gradient(circle_at_100%_0%,rgba(255,255,255,0.35),transparent_40%)] mix-blend-screen" />
+                  </div>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                    *Relative momentum based on current period revenue.
+                  </p>
+                </div>
               </div>
             </>
           ) : (
