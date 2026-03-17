@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import api from "../../../services/api";
+import { Select } from "../../../components/ui/Select";
 
 const EVENT_LABELS = {
   LOGIN: "Login",
@@ -19,6 +20,8 @@ export default function ActivityLogPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("all");
+   const [page, setPage] = useState(1);
+   const pageSize = 25;
 
   const users = useMemo(() => {
     const map = new Map();
@@ -102,11 +105,15 @@ export default function ActivityLogPage() {
     return null;
   }
 
+  const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const paginatedLogs = logs.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-w-0 rounded-2xl bg-white/90 p-4 text-sm text-slate-800 shadow-sm dark:bg-slate-900/90 dark:text-slate-100 dark:border dark:border-slate-800 sm:p-5"
+      className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100 sm:p-5"
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -118,23 +125,19 @@ export default function ActivityLogPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="relative">
-            <select
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-xs font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus:border-orange-400 focus:ring-2 focus:ring-orange-200/60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:border-slate-500 dark:focus:ring-slate-500/30"
-            >
-              <option value="all">All users</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} ({u.role})
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 dark:text-slate-500">
-              ▼
-            </span>
-          </div>
+          <Select
+            label="User"
+            options={[
+              { value: "all", label: "All users" },
+              ...users.map((u) => ({
+                value: String(u.id),
+                label: u.name
+              }))
+            ]}
+            value={selectedUserId}
+            onChange={(v) => setSelectedUserId(String(v))}
+            placeholder="All users"
+          />
           <button
             type="button"
             onClick={handleExport}
@@ -155,8 +158,9 @@ export default function ActivityLogPage() {
           No activity recorded yet.
         </div>
       ) : (
-        <div className="space-y-3">
-          {logs.map((log) => (
+        <>
+          <div className="space-y-3">
+          {paginatedLogs.map((log) => (
             <div
               key={log.id}
               className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] dark:border-slate-700 dark:bg-slate-800/60"
@@ -193,7 +197,34 @@ export default function ActivityLogPage() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-between gap-3 text-[11px] text-slate-600 dark:text-slate-300">
+              <span>
+                Page {safePage} of {totalPages} · Showing{" "}
+                {paginatedLogs.length} of {logs.length} events
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage === 1}
+                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage === totalPages}
+                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </motion.div>
   );
