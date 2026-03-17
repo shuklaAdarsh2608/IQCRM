@@ -73,6 +73,7 @@ router.post(
 );
 router.patch(
   "/:id/assign",
+  requireRole(["SUPER_ADMIN", "ADMIN"]),
   body("ownerId").notEmpty().withMessage("ownerId is required").isInt({ min: 1 }),
   assignLead
 );

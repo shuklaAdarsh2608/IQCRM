@@ -137,6 +137,7 @@ export default function ActivityLogPage() {
             value={selectedUserId}
             onChange={(v) => setSelectedUserId(String(v))}
             placeholder="All users"
+            className="w-auto min-w-[120px]"
           />
           <button
             type="button"

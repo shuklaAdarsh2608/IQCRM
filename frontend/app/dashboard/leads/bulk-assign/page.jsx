@@ -164,7 +164,7 @@ export default function BulkAssignLeadsPage() {
   if (allowed === false) return null;
   if (allowed !== true) {
     return (
-      <div className="rounded-2xl bg-white/80 p-6 text-sm text-slate-500">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
         Checking access...
       </div>
     );
@@ -173,32 +173,32 @@ export default function BulkAssignLeadsPage() {
   return (
     <div className="glass-card min-w-0 overflow-hidden p-3 sm:p-4">
       {/* Same tab bar as Leads page — Bulk assign is active */}
-      <div className="mb-4 flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-3">
+      <div className="mb-4 flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-3 dark:border-slate-700">
         <Link
           href="/dashboard/leads"
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
         >
           My leads
         </Link>
         <Link
           href="/dashboard/leads"
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
         >
           All leads
         </Link>
         <Link
           href="/dashboard/leads/import"
-          className="rounded-lg border-2 border-orange-400 bg-white px-4 py-2 text-sm font-medium text-orange-600 shadow-sm hover:bg-orange-50"
+          className="rounded-lg border-2 border-orange-400 bg-white px-4 py-2 text-sm font-medium text-orange-600 shadow-sm hover:bg-orange-50 dark:bg-slate-900 dark:text-orange-300 dark:hover:bg-orange-500/10"
         >
           Import
         </Link>
-        <span className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-800 shadow-sm">
+        <span className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-800 shadow-sm dark:bg-slate-700 dark:text-slate-100">
           Bulk assign
         </span>
         {isSuperAdmin && (
           <Link
             href="/dashboard/leads/delete-requests"
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-amber-700 shadow-sm hover:bg-amber-50"
+            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-amber-700 shadow-sm hover:bg-amber-50 dark:bg-slate-900 dark:text-amber-300 dark:hover:bg-amber-500/10"
           >
             Pending deletes
           </Link>
@@ -206,22 +206,21 @@ export default function BulkAssignLeadsPage() {
       </div>
 
       <div className="min-w-0 space-y-4">
-
-      {message.text && (
-        <div
-          className={`rounded-xl border px-4 py-3 text-sm ${
-            message.type === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+        {message.text && (
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              message.type === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300"
+                : "border-red-200 bg-red-50 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
 
       {/* Assign card */}
-      <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/80 to-white p-4 shadow-sm sm:p-5">
-        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800">
+      <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/80 to-white p-4 shadow-sm sm:p-5 dark:border-slate-700 dark:from-slate-900 dark:to-slate-900">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
           <Users className="h-4 w-4 text-orange-500" />
           Assign selected leads to
         </div>
@@ -252,7 +251,7 @@ export default function BulkAssignLeadsPage() {
           </button>
         </div>
         {selectedIds.size > 0 && (
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-300">
             {selectedIds.size} lead(s) selected. They will appear in &quot;My leads&quot; for the chosen user.
           </p>
         )}
@@ -261,14 +260,16 @@ export default function BulkAssignLeadsPage() {
       {/* View tabs + filter — same style as Leads page tabs */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs font-medium text-slate-500">View:</span>
+          <span className="mr-1 text-xs font-medium text-slate-500 dark:text-slate-300">
+            View:
+          </span>
           <button
             type="button"
             onClick={setViewPool}
             className={`rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition ${
               showPoolOnly
-                ? "bg-slate-200 text-slate-800"
-                : "bg-white text-slate-700 hover:bg-slate-50"
+                ? "bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100"
+                : "bg-white text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             My pool
@@ -278,15 +279,15 @@ export default function BulkAssignLeadsPage() {
             onClick={setViewAll}
             className={`rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition ${
               !showPoolOnly && !filterOwnerId
-                ? "bg-slate-200 text-slate-800"
-                : "bg-white text-slate-700 hover:bg-slate-50"
+                ? "bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100"
+                : "bg-white text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             All leads
           </button>
           {!showPoolOnly && (
             <div className="flex items-center gap-2">
-              <span className="text-slate-300">|</span>
+              <span className="text-slate-300 dark:text-slate-600">|</span>
               <div className="w-[200px]">
                 <Select
                   options={[
@@ -304,7 +305,7 @@ export default function BulkAssignLeadsPage() {
             </div>
           )}
         </div>
-        <div className="text-sm text-slate-500">
+        <div className="text-sm text-slate-500 dark:text-slate-300">
           {totalLeads > 0 ? (
             <span>
               {totalLeads} lead{totalLeads !== 1 ? "s" : ""} · Page {page} of {totalPages}

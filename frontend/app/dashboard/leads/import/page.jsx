@@ -180,10 +180,15 @@ export default function ImportLeadsPage() {
   };
 
   if (allowed === false) return null;
-  if (allowed !== true) return <div className="rounded-2xl bg-white/80 p-6 text-sm text-slate-500">Checking access...</div>;
+  if (allowed !== true)
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+        Checking access...
+      </div>
+    );
 
   return (
-    <div className="rounded-2xl bg-white/80 p-6 text-sm text-slate-700 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-slate-900">Import Leads</h1>
         <Link
@@ -222,24 +227,24 @@ export default function ImportLeadsPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/70">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
             File headers
           </h2>
           {allHeaders.length > 0 ? (
-            <p className="mb-3 break-words text-xs text-slate-600">
+            <p className="mb-3 break-words text-xs text-slate-600 dark:text-slate-200">
               Detected:&nbsp;
               <span className="font-medium text-slate-800">
                 {allHeaders.join(", ")}
               </span>
             </p>
           ) : (
-            <p className="mb-3 text-xs text-slate-500">
+            <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
               Click <span className="font-semibold">Load headers</span> after selecting a
               file to see all columns from your CSV/Excel.
             </p>
           )}
-          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
             Add header manually
           </h3>
           <div className="flex flex-wrap items-center gap-2">
@@ -249,12 +254,12 @@ export default function ImportLeadsPage() {
               onChange={(e) => setManualInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddHeaderManually())}
               placeholder="Type column name from your file"
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-400"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             />
             <button
               type="button"
               onClick={handleAddHeaderManually}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             >
               Add header
             </button>
@@ -266,22 +271,24 @@ export default function ImportLeadsPage() {
           )}
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Map columns</h2>
-          <p className="mb-3 text-xs text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-900/70">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+            Map columns
+          </h2>
+          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
             Match each lead field to a column from your file. First Name is required.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {STANDARD_FIELDS.map(({ key, label, required }) => (
               <div key={key} className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-slate-700">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-200">
                   {label}
                   {required && <span className="text-orange-500"> *</span>}
                 </label>
                 <select
                   value={columnMap[key] ?? ""}
                   onChange={(e) => handleMapChange(key, e.target.value || null)}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-400"
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
                 >
                   <option value="">Don&apos;t map</option>
                   {allHeaders.map((h) => (
@@ -294,12 +301,14 @@ export default function ImportLeadsPage() {
         </div>
 
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-500/10 dark:text-red-300">
+              {error}
+            </p>
         )}
         <button
           type="submit"
           disabled={loading || !file}
-          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-50"
+          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-600 disabled:opacity-50 dark:bg-orange-500 dark:hover:bg-orange-400"
         >
           {loading ? "Importing…" : "Import"}
         </button>
