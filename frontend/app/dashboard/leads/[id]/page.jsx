@@ -8,16 +8,16 @@ import { Select } from "../../../../components/ui/Select";
 import { CelebrationOverlay } from "../../../../components/ui/CelebrationOverlay";
 
 const STATUS_OPTIONS = [
-  "NEW",
-  "CONTACTED",
-  "QUALIFIED",
-  "PROPOSAL",
-  "NEGOTIATION",
+  "FRESH",
+  "ACTIVE",
+  "SCHEDULED",
+  "NO REPLY",
+  "SWITCHED OFF",
   "WON",
   "LOST",
-  "NOT_INTERESTED",
-  "RESCHEDULED",
-  "JUNK"
+  "DEFERRED",
+  "WRONG NUMBER",
+  "QUALIFIED"
 ];
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
