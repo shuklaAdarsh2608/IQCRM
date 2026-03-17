@@ -15,15 +15,16 @@ const TAB_ALL_LEADS = "all";
 const TAB_ASSIGNED = "assigned";
 const SEARCH_DEBOUNCE_MS = 350;
 const EXPORT_STATUS_OPTIONS = [
-  "NEW",
-  "CONTACTED",
-  "QUALIFIED",
-  "PROPOSAL",
-  "NEGOTIATION",
+  "FRESH",
+  "ACTIVE",
+  "SCHEDULED",
+  "NO REPLY",
+  "SWITCHED OFF",
   "WON",
   "LOST",
-  "RESCHEDULED",
-  "JUNK"
+  "DEFERRED",
+  "WRONG NUMBER",
+  "QUALIFIED"
 ];
 
 export function LeadListTable() {

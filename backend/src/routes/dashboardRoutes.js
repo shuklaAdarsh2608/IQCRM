@@ -73,13 +73,9 @@ router.get("/leaderboard", async (req, res, next) => {
       byUser[id] += Number(l.valueAmount || 0);
     }
 
-    const userIds = Object.keys(byUser).map(Number).filter(Boolean);
-    if (userIds.length === 0) {
-      return res.json({ success: true, data: [] });
-    }
-
+    // Show all active users in the leaderboard, even if they have zero revenue.
     const users = await User.findAll({
-      where: { id: { [Op.in]: userIds } },
+      where: { isActive: true },
       attributes: ["id", "name"]
     });
 

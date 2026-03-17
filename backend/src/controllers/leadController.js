@@ -13,15 +13,17 @@ import { parse } from "csv-parse/sync";
 import * as XLSX from "xlsx";
 
 const LEAD_STATUSES = [
-  "NEW",
-  "CONTACTED",
-  "QUALIFIED",
-  "PROPOSAL",
-  "NEGOTIATION",
+  // New front-end friendly statuses
+  "FRESH",
+  "ACTIVE",
+  "SCHEDULED",
+  "NO REPLY",
+  "SWITCHED OFF",
   "WON",
   "LOST",
-  "RESCHEDULED",
-  "JUNK"
+  "DEFERRED",
+  "WRONG NUMBER",
+  "QUALIFIED"
 ];
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
@@ -780,7 +782,11 @@ export async function assignLead(req, res, next) {
       return res.json({ success: true, data: lead, message: "Lead already assigned to this user" });
     }
     const oldOwner = fromUserId ? await User.findByPk(fromUserId, { attributes: ["name"] }) : null;
+
+    // When a lead is reassigned, treat it as fresh: reset status to NEW
+    const oldStatus = lead.status;
     lead.ownerId = toUser.id;
+    lead.status = "NEW";
     lead.updatedBy = req.user.id;
     await lead.save();
     await LeadAssignment.create({
@@ -790,6 +796,9 @@ export async function assignLead(req, res, next) {
       assignedBy: req.user.id
     });
     await logLeadAudit(lead.id, req.user.id, "ownerId", oldOwner?.name ?? "—", toUser.name);
+    if (oldStatus !== "NEW") {
+      await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "NEW");
+    }
     const updated = await Lead.findByPk(lead.id, {
       include: [{ model: User, as: "owner", attributes: ["id", "name"] }]
     });
@@ -827,7 +836,9 @@ export async function bulkAssignLeads(req, res, next) {
           continue;
         }
         const fromUserId = lead.ownerId;
+        const oldStatus = lead.status;
         lead.ownerId = toUser.id;
+        lead.status = "NEW";
         lead.updatedBy = req.user.id;
         await lead.save();
         await LeadAssignment.create({
@@ -836,6 +847,9 @@ export async function bulkAssignLeads(req, res, next) {
           toUserId: toUser.id,
           assignedBy: req.user.id
         });
+        if (oldStatus !== "NEW") {
+          await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "NEW");
+        }
         results.assigned++;
       } catch (e) {
         results.errors.push({ leadId: id, message: e.message });
