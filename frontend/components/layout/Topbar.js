@@ -97,7 +97,7 @@ export function Topbar({ onMenuClick }) {
   });
 
   return (
-    <header className="sticky top-0 z-20 mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm sm:mb-4 sm:px-4 sm:py-3 dark:bg-slate-900/90 dark:text-slate-100">
+    <header className="sticky top-0 z-20 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white/95 px-4 py-2 shadow-sm backdrop-blur-sm sm:mb-3 sm:px-6 sm:py-2.5 dark:bg-slate-900/90 dark:text-slate-100">
       <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
         {onMenuClick && (
           <button
@@ -116,7 +116,7 @@ export function Topbar({ onMenuClick }) {
               alt="IQLead"
               width={140}
               height={40}
-              className="h-8 w-auto object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-9"
+              className="h-8 w-auto object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-9 dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -124,7 +124,7 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: hidden on mobile (use hamburger/sidebar); visible from md up */}
-      <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-1 overflow-x-auto py-1 text-xs font-medium text-slate-600 lg:flex lg:justify-center dark:text-slate-200">
+      <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-2 overflow-x-auto py-1 text-xs font-medium text-slate-600 lg:flex lg:justify-center lg:gap-3 dark:text-slate-200">
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
@@ -134,7 +134,7 @@ export function Topbar({ onMenuClick }) {
               key={item.href}
               href={item.href}
               className={
-                "shrink-0 rounded-full px-3 py-2 transition sm:px-4 " +
+                "shrink-0 rounded-full px-3 py-2 transition sm:px-4 lg:px-5 " +
                 (active
                   ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
                   : "hover:bg-slate-100 dark:hover:bg-slate-800")

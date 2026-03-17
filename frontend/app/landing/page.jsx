@@ -89,7 +89,7 @@ export default function LandingPage() {
       <PublicHeader />
 
       {/* Hero */}
-      <main className="mx-auto max-w-6xl px-4 pb-20 pt-6 sm:pt-12">
+      <main className="mx-auto max-w-[1600px] px-4 pb-20 pt-6 sm:pt-12">
         <section className="mx-auto max-w-5xl">
           <div className="mb-6 flex flex-wrap items-center justify-center gap-2 text-[10px] sm:mb-8 sm:text-xs">
             <button className="rounded-full bg-slate-900 px-4 py-1 font-medium text-white shadow-sm">
@@ -337,7 +337,7 @@ export default function LandingPage() {
 
           {/* Company growth timeline */}
           <section className="bg-slate-100 py-8 sm:py-10 dark:bg-slate-900">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="mx-auto max-w-[1600px] px-4 sm:px-6">
               <div className="mb-6 text-center sm:mb-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">
                   Company growth
@@ -376,7 +376,7 @@ export default function LandingPage() {
 
           {/* Values */}
           <section className="bg-white py-8 sm:py-10 dark:bg-slate-950">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="mx-auto max-w-[1600px] px-4 sm:px-6">
               <div className="mb-6 text-center sm:mb-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">
                   Our values

@@ -47,23 +47,23 @@ export default function LoginPage() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md rounded-3xl bg-white/90 p-6 text-sm text-slate-800 shadow-[0_18px_60px_rgba(15,23,42,0.15)] ring-1 ring-slate-100 dark:bg-slate-950/90 dark:text-slate-100 dark:ring-slate-800 sm:p-8"
+          className="w-full max-w-md rounded-3xl bg-white/90 p-6 text-sm text-slate-800 shadow-[0_18px_60px_rgba(15,23,42,0.15)] ring-1 ring-slate-100 dark:bg-slate-900/95 dark:text-slate-100 dark:ring-slate-700 dark:shadow-[0_18px_60px_rgba(0,0,0,0.4)] sm:p-8"
         >
-          <h1 className="mb-1 text-xl font-semibold text-slate-900 sm:text-2xl">
+          <h1 className="mb-1 text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
             Welcome back
           </h1>
-          <p className="mb-6 text-xs text-slate-500 sm:text-[13px]">
+          <p className="mb-6 text-xs text-slate-500 dark:text-slate-300 sm:text-[13px]">
             Sign in to access your IQLead CRM dashboard and manage your leads, targets and
             reports.
           </p>
           <form className="space-y-4 text-sm" onSubmit={handleSubmit}>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Email
               </label>
               <input
                 type="email"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-500 dark:focus:ring-orange-500/30"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -72,12 +72,12 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
+              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
                 Password
               </label>
               <input
                 type="password"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-500 dark:focus:ring-orange-500/30"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -86,8 +86,8 @@ export default function LoginPage() {
               />
             </div>
             <div className="flex items-center justify-start gap-2 text-[11px]">
-              <label className="flex items-center gap-1 text-slate-600">
-                <input type="checkbox" className="rounded border-slate-300" />
+              <label className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+                <input type="checkbox" className="rounded border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:accent-orange-500" />
                 <span>Remember me</span>
               </label>
             </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-2 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-70 dark:bg-orange-500 dark:hover:bg-orange-600 dark:focus:ring-orange-500/50"
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
