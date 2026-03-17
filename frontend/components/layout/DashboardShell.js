@@ -25,11 +25,11 @@ export function DashboardShell({ children, title, subtitle }) {
   }
 
   return (
-    <div className="min-h-screen bg-background px-2 py-4 text-slate-900 dark:text-slate-100 sm:px-4 sm:py-6">
+    <div className="min-h-screen bg-slate-50 px-2 py-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-4 sm:py-6">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="mx-auto w-full max-w-[1600px]">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="min-w-0">
+        <main className="min-w-0 space-y-4">
           {title || subtitle ? (
             <div className="mb-3">
               {title && (
