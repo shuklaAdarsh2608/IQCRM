@@ -545,7 +545,7 @@ export function LeadListTable() {
                   : "";
                 const wonHighlight =
                   !isLimitedView && isWon
-                    ? "bg-amber-50/80 border-l-4 border-amber-400 dark:bg-slate-800/80 dark:border-emerald-400"
+                    ? "won-row border-l-4 border-amber-400 dark:border-emerald-400"
                     : "";
                 return (
                   <tr

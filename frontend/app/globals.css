@@ -40,6 +40,15 @@ pre {
   .glass-card {
     @apply rounded-2xl border border-white/50 bg-white/70 p-4 shadow-lg shadow-slate-900/5 backdrop-blur transition-colors duration-200 dark:border-slate-800/80 dark:bg-slate-900/70;
   }
+
+  /* Highlight row background for WON leads (soft golden glow) */
+  .won-row {
+    background: radial-gradient(circle at center, #fffdf3 0%, #ffe8a3 40%, #f7c948 100%);
+  }
+
+  .dark .won-row {
+    background: radial-gradient(circle at center, #020617 0%, #1e293b 30%, #92400e 100%);
+  }
 }
 
 /* Form fields – ensure readable in dark mode */
