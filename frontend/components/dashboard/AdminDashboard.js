@@ -242,7 +242,7 @@ export function AdminDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0 }}
-          className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
+          className="rounded-2xl bg-white p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
           <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             {summary.newLeads == null ? "—" : summary.newLeads}
@@ -253,7 +253,7 @@ export function AdminDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
+          className="rounded-2xl bg-white p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
           <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             {summary.assignedLeadsCount == null ? "—" : summary.assignedLeadsCount}
@@ -264,7 +264,7 @@ export function AdminDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
+          className="rounded-2xl bg-white p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
           <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             {summary.wonLeadsCount == null ? "—" : summary.wonLeadsCount}
@@ -275,7 +275,7 @@ export function AdminDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
+          className="rounded-2xl bg-white p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
           <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             {summary.upcomingCallsCount == null ? "—" : summary.upcomingCallsCount}
@@ -286,7 +286,7 @@ export function AdminDashboard() {
 
       {/* Goals + Lead source */}
       <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
-        <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
           {role === "SUPER_ADMIN" || role === "ADMIN" ? (
             <>
               <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-50">
@@ -328,7 +328,7 @@ export function AdminDashboard() {
           )}
         </div>
 
-        <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
           <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-50">
             Revenue Leaderboard
           </p>
@@ -386,7 +386,7 @@ export function AdminDashboard() {
 
       {/* Upcoming meetings + latest leads */}
       <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
-        <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
               Upcoming Calls
@@ -448,7 +448,7 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
           <div className="mb-2">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">Latest Leads</p>
           </div>

@@ -41,7 +41,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-[#ffe3d2] via-[#ffeef0] to-[#fdf7ff] text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
       <PublicHeader />
       <div className="flex items-center justify-center px-4 pb-10 pt-4 sm:pb-16 sm:pt-4">
         <motion.div
