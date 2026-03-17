@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import api from "../../../../services/api";
 import { Select } from "../../../../components/ui/Select";
+import { CelebrationOverlay } from "../../../../components/ui/CelebrationOverlay";
 
 const STATUS_OPTIONS = [
   "NEW",
@@ -35,6 +36,7 @@ export default function LeadDetailPage({ params }) {
   const [savingRating, setSavingRating] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -119,6 +121,9 @@ export default function LeadDetailPage({ params }) {
         if (res.data?.success && res.data?.data) {
           setLead(res.data.data);
           if (userRole && ADMIN_ROLES.includes(userRole)) loadAuditLog();
+          if (status === "WON") {
+            setShowCelebration(true);
+          }
         }
       })
       .finally(() => setSavingStatus(false));
@@ -172,6 +177,14 @@ export default function LeadDetailPage({ params }) {
 
   return (
     <div className="min-w-0 space-y-4">
+      <CelebrationOverlay
+        isOpen={showCelebration}
+        title="Congratulations!"
+        message={`Deal won! ${lead.valueAmount ? `₹ ${Number(lead.valueAmount).toLocaleString("en-IN")} closed.` : "This lead is now marked as won."}`}
+        buttonText="Continue"
+        onClose={() => setShowCelebration(false)}
+        autoCloseDelay={6000}
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
           <h1 className="truncate text-base font-semibold text-slate-900">
