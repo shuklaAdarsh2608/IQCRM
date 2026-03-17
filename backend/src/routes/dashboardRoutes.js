@@ -155,9 +155,9 @@ router.get("/summary", async (req, res, next) => {
     const wonLeadsCount = await Lead.count({ where: wonWhere });
 
     // Upcoming calls count - role-based visibility
-    const now = new Date();
+    const nowForCalls = new Date();
     const callsWhere = {
-      scheduledTime: { [Op.gte]: now },
+      scheduledTime: { [Op.gte]: nowForCalls },
       status: "PENDING"
     };
     if (visibleIds !== null) {
