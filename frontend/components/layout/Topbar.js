@@ -26,7 +26,7 @@ const ROLE_LABELS = {
   ADMIN: "Admin",
   MANAGER: "Manager",
   TEAM_LEADER: "Team Leader",
-  USER: "Sales Executive"
+  USER: "Relationship Manager"
 };
 
 export function Topbar({ onMenuClick }) {

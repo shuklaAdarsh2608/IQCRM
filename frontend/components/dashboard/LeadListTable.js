@@ -8,7 +8,7 @@ import { CalendarDays } from "lucide-react";
 import api from "../../services/api";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
-/** Sales Executive, Manager, Team Leader see only: Name, Last Name, Designation, Company, Number, Mail ID, Status, Rating, Comment */
+/** Relationship Manager, Manager, Team Leader see only: Name, Designation, Company, Number, Mail ID, Status, Rating, Comment */
 const LIMITED_VIEW_ROLES = ["USER", "MANAGER", "TEAM_LEADER"];
 const TAB_MY_LEADS = "my";
 const TAB_ALL_LEADS = "all";
@@ -85,7 +85,7 @@ export function LeadListTable() {
   // Only admin can switch to "All leads"; others always see their assigned leads (My leads)
   const isAdmin = canBulkAssign;
   const effectiveTab = isAdmin ? activeTab : TAB_MY_LEADS;
-  // Sales Executive, Manager, Team Leader see only: Name, Last Name, Designation, Company, Number, Mail ID, Status, Rating, Comment
+  // Relationship Manager, Manager, Team Leader see only: Name, Designation, Company, Number, Mail ID, Status, Rating, Comment
   const isLimitedView = userRole != null && LIMITED_VIEW_ROLES.includes(userRole);
 
   useEffect(() => {
@@ -424,16 +424,30 @@ export function LeadListTable() {
               <tr>
                 {isLimitedView ? (
                   <>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Name</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Last Name</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Designation</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Company</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Number</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Mail ID</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Status</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Amount</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Rating</th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">Comment</th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Name
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Designation
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Company
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Number
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Mail ID
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Status
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Rating
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Comment
+                    </th>
                   </>
                 ) : (
                   <>
@@ -521,22 +535,23 @@ export function LeadListTable() {
               {filtered.map((lead, idx) => {
                 const isWon = (lead.status || "").toUpperCase() === "WON";
                 const baseRowClass = idx % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/40" : "";
-                const wonHighlight = isWon
-                  ? "bg-amber-50/80 border-l-4 border-amber-400 dark:bg-amber-500/10 dark:border-amber-400"
+                const limitedHighlight = isLimitedView
+                  ? "bg-amber-50/70 border-l-4 border-amber-400 dark:bg-amber-500/10 dark:border-amber-400"
                   : "";
+                const wonHighlight =
+                  !isLimitedView && isWon
+                    ? "bg-amber-50/80 border-l-4 border-amber-400 dark:bg-amber-500/10 dark:border-amber-400"
+                    : "";
                 return (
                   <tr
                     key={lead.id}
-                    className={`cursor-pointer transition hover:bg-orange-50/50 dark:hover:bg-slate-800/60 ${baseRowClass} ${wonHighlight}`}
+                    className={`cursor-pointer transition hover:bg-orange-50/50 dark:hover:bg-slate-800/60 ${baseRowClass} ${limitedHighlight} ${wonHighlight}`}
                     onClick={() => handleRowClick(lead.id)}
                   >
                   {isLimitedView ? (
                     <>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-900 dark:border-slate-800 dark:text-slate-50">
-                        {lead.firstName || "—"}
-                      </td>
-                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                        {lead.lastName || "—"}
+                        {(lead.firstName || "") + (lead.lastName ? ` ${lead.lastName}` : "") || "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.title || "—"}
@@ -554,11 +569,6 @@ export function LeadListTable() {
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadgeClass(lead.status)}`}>
                           {lead.status}
                         </span>
-                      </td>
-                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-700 dark:border-slate-800 dark:text-slate-200">
-                        {lead.valueAmount != null && Number(lead.valueAmount) > 0
-                          ? `₹ ${Number(lead.valueAmount).toLocaleString("en-IN")}`
-                          : "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.rating != null ? `${Number(lead.rating)} ★` : "—"}
