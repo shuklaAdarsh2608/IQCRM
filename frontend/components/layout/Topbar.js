@@ -208,12 +208,8 @@ export function Topbar({ onMenuClick }) {
             <div className="absolute right-0 z-40 mt-2 w-40 min-w-[10rem] rounded-xl bg-white py-2 text-xs text-slate-700 shadow-lg">
               {user && (
                 <div className="mb-2 border-b border-slate-100 px-3 pb-2">
-                  <p className="truncate text-xs font-semibold text-slate-900">
+                  <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-50">
                     {user.name}
-                  </p>
-                  <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    {ROLE_LABELS[user.role] || user.role || "Role"}
                   </p>
                 </div>
               )}

@@ -339,13 +339,23 @@ export function AdminDashboard() {
               </p>
             ) : (
               leaderboard.map((entry, idx) => {
-                const colors = ["bg-amber-400", "bg-purple-400", "bg-slate-500"];
-                const color = colors[idx % 3];
+                const colors = ["bg-amber-400", "bg-slate-300", "bg-amber-700", "bg-slate-500"];
+                const color = colors[idx] || colors[3];
+                const rankStyles =
+                  idx === 0
+                    ? "bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-900"
+                    : idx === 1
+                      ? "bg-gradient-to-r from-slate-200 to-slate-400 text-slate-900"
+                      : idx === 2
+                        ? "bg-gradient-to-r from-amber-700 to-orange-500 text-white"
+                        : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200";
                 return (
                   <div key={entry.userId} className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${rankStyles}`}
+                        >
                           {idx + 1}
                         </span>
                         <p className="font-medium text-slate-800 dark:text-slate-100 truncate max-w-[120px]">

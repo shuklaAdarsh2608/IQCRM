@@ -54,15 +54,12 @@ router.get("/leaderboard", async (req, res, next) => {
       end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     }
 
+    // For the revenue leaderboard we always show ALL users' performance,
+    // regardless of who is viewing the dashboard.
     const where = {
       status: "WON",
       ...(start != null && end != null && { createdAt: { [Op.gte]: start, [Op.lt]: end } })
     };
-
-    const visibleIds = await resolveVisibleUserIds(req.user);
-    if (visibleIds !== null) {
-      where.ownerId = { [Op.in]: visibleIds };
-    }
 
     const leads = await Lead.findAll({
       where,
