@@ -315,9 +315,11 @@ export function AdminDashboard() {
                 <div className="mt-4 w-full space-y-2">
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-300">
                     <span>Revenue momentum</span>
-                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                      {revenuePercent > 0 ? `${revenuePercent}% of target*` : "No revenue yet"}
-                    </span>
+                    {revenuePercent > 0 && (
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                        {revenuePercent}% index
+                      </span>
+                    )}
                   </div>
                   <div className="relative h-3 overflow-hidden rounded-full bg-slate-100 shadow-inner dark:bg-slate-800">
                     <motion.div
@@ -329,7 +331,7 @@ export function AdminDashboard() {
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.6),transparent_40%),radial-gradient(circle_at_100%_0%,rgba(255,255,255,0.35),transparent_40%)] mix-blend-screen" />
                   </div>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                    *Relative momentum based on current period revenue.
+                    Relative momentum based on current period revenue.
                   </p>
                 </div>
               </div>
