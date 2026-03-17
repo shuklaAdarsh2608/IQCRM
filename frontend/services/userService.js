@@ -12,3 +12,7 @@ export async function resetUserPassword(userId, payload) {
   return api.post(`/users/${userId}/reset-password`, payload);
 }
 
+export async function forceLogoutUser(userId) {
+  return api.post(`/users/${userId}/force-logout`);
+}
+

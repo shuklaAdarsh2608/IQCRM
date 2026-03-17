@@ -48,6 +48,12 @@ User.init(
       allowNull: false,
       defaultValue: true,
       field: "is_active"
+    },
+    tokenVersion: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      defaultValue: 0,
+      field: "token_version"
     }
   },
   {

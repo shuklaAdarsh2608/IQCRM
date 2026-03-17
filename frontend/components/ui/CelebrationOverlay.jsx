@@ -8,7 +8,7 @@ const FLOATING_STARS = Array.from({ length: 24 }, (_, i) => ({
   size: 4 + Math.random() * 8,
   left: `${Math.random() * 100}%`,
   top: `${Math.random() * 100}%`,
-  delay: Math.random() * 3,
+  delay: 0.4 + Math.random() * 2,
   duration: 2 + Math.random() * 4,
   opacity: 0.3 + Math.random() * 0.5
 }));
@@ -48,16 +48,20 @@ export function CelebrationOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
         >
-          {/* Gradient background */}
-          <div
+          {/* Gradient background - animates in with scale */}
+          <motion.div
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-violet-900 to-purple-950"
             aria-hidden
           />
 
-          {/* Floating stars / particles */}
+          {/* Floating stars - pop in, then float */}
           <div className="pointer-events-none absolute inset-0">
             {FLOATING_STARS.map((star) => (
               <motion.div
@@ -68,46 +72,68 @@ export function CelebrationOverlay({
                   height: star.size,
                   left: star.left,
                   top: star.top,
-                  opacity: star.opacity,
                   boxShadow: "0 0 12px 2px rgba(253, 224, 71, 0.5)"
                 }}
+                initial={{ opacity: 0, scale: 0 }}
                 animate={{
-                  y: [0, -12, 0],
-                  opacity: [star.opacity * 0.6, star.opacity, star.opacity * 0.6],
-                  scale: [1, 1.2, 1]
+                  opacity: star.opacity,
+                  scale: 1,
+                  y: [0, -14, 0]
                 }}
                 transition={{
-                  duration: star.duration,
-                  delay: star.delay,
-                  repeat: Infinity,
-                  ease: "easeInOut"
+                  opacity: { duration: 0.6, delay: star.delay * 0.25 },
+                  scale: { type: "spring", stiffness: 400, damping: 15, delay: star.delay * 0.15 },
+                  y: {
+                    duration: star.duration,
+                    delay: star.delay + 0.3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
                 }}
               />
             ))}
           </div>
 
-          {/* Center panel - glassmorphism */}
+          {/* Center panel - bouncy entrance */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 24
+            initial={{ opacity: 0, scale: 0.5, y: 40 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              transition: {
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                mass: 0.8
+              }
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.92,
+              y: 0,
+              transition: { duration: 0.25 }
             }}
             className="relative z-10 mx-4 w-full max-w-md rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl sm:p-10"
           >
-            {/* Success icon */}
+            {/* Success icon - pop in with bounce */}
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.15, type: "spring", stiffness: 400, damping: 12 }}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{
+                scale: 1,
+                rotate: 0,
+                transition: {
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 12,
+                  delay: 0.15
+                }
+              }}
               className="mb-6 flex justify-center"
             >
               <motion.span
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                 className="text-6xl sm:text-7xl"
                 role="img"
                 aria-label="Success"
@@ -116,18 +142,34 @@ export function CelebrationOverlay({
               </motion.span>
             </motion.div>
 
-            <h2 className="mb-3 text-center text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <motion.h2
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.35 }}
+              className="mb-3 text-center text-2xl font-bold tracking-tight text-white sm:text-3xl"
+            >
               {title}
-            </h2>
-            <p className="mb-8 text-center text-sm leading-relaxed text-white/85 sm:text-base">
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.35 }}
+              className="mb-8 text-center text-sm leading-relaxed text-white/85 sm:text-base"
+            >
               {message}
-            </p>
+            </motion.p>
 
             <motion.button
               type="button"
               onClick={handleClose}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: { delay: 0.4, type: "spring", stiffness: 300, damping: 22 }
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.96 }}
               className="mx-auto flex w-full max-w-[200px] items-center justify-center rounded-2xl bg-amber-400 px-6 py-3.5 text-base font-semibold text-slate-900 shadow-[0_0_24px_rgba(253,224,71,0.4)] transition-shadow hover:shadow-[0_0_32px_rgba(253,224,71,0.55)]"
             >
               {buttonText}

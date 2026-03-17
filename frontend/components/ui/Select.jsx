@@ -51,7 +51,7 @@ export function Select({
         onClick={() => !disabled && setOpen((o) => !o)}
         disabled={disabled}
         className={`
-          flex w-full min-w-[140px] items-center justify-between gap-2 rounded-xl border bg-white px-4 py-2.5 text-left text-sm
+          flex w-full min-w-0 items-center justify-between gap-2 rounded-xl border bg-white px-4 py-2.5 text-left text-sm
           transition-all duration-200
           ${disabled
             ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500"

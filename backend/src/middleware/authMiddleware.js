@@ -20,6 +20,14 @@ export async function requireAuth(req, res, next) {
       throw error;
     }
 
+    const currentVersion = user.tokenVersion ?? 0;
+    const tokenVersion = decoded.tokenVersion ?? 0;
+    if (tokenVersion !== currentVersion) {
+      const error = new Error("Session expired. Please log in again.");
+      error.status = 401;
+      throw error;
+    }
+
     req.user = {
       id: user.id,
       role: user.role

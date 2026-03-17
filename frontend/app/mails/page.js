@@ -1,10 +1,28 @@
 "use client";
 
 import { DashboardShell } from "../../components/layout/DashboardShell";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function MailsPage() {
   const [selectedId, setSelectedId] = useState(1);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [composeForm, setComposeForm] = useState({
+    to: "",
+    subject: "",
+    body: ""
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("iqlead_user");
+      const user = raw ? JSON.parse(raw) : null;
+      setUserEmail(user?.email || "");
+    } catch {
+      setUserEmail("");
+    }
+  }, []);
 
   const mails = [
     {
@@ -35,6 +53,16 @@ export default function MailsPage() {
 
   const selected = mails.find((m) => m.id === selectedId) || mails[0];
 
+  const handleComposeSend = () => {
+    if (!composeForm.to?.trim()) return;
+    const subject = encodeURIComponent(composeForm.subject || "");
+    const body = encodeURIComponent(composeForm.body || "");
+    const mailto = `mailto:${composeForm.to.trim()}?subject=${subject}&body=${body}`;
+    window.location.href = mailto;
+    setComposeOpen(false);
+    setComposeForm({ to: "", subject: "", body: "" });
+  };
+
   return (
     <DashboardShell
       title="Mails"
@@ -46,7 +74,11 @@ export default function MailsPage() {
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
               Inbox
             </p>
-            <button className="rounded-full bg-orange-500 px-3 py-1 text-[11px] font-medium text-white hover:bg-orange-600">
+            <button
+              type="button"
+              onClick={() => setComposeOpen(true)}
+              className="rounded-full bg-orange-500 px-3 py-1 text-[11px] font-medium text-white hover:bg-orange-600"
+            >
               Compose
             </button>
           </div>
@@ -103,6 +135,102 @@ export default function MailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Compose modal */}
+      {composeOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4"
+          onClick={() => setComposeOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="compose-title"
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 id="compose-title" className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                Compose email
+              </h2>
+              <button
+                type="button"
+                onClick={() => setComposeOpen(false)}
+                className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  From
+                </label>
+                <input
+                  type="email"
+                  value={userEmail}
+                  readOnly
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  To
+                </label>
+                <input
+                  type="email"
+                  value={composeForm.to}
+                  onChange={(e) => setComposeForm((p) => ({ ...p, to: e.target.value }))}
+                  placeholder="recipient@example.com"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={composeForm.subject}
+                  onChange={(e) => setComposeForm((p) => ({ ...p, subject: e.target.value }))}
+                  placeholder="Email subject"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Message
+                </label>
+                <textarea
+                  value={composeForm.body}
+                  onChange={(e) => setComposeForm((p) => ({ ...p, body: e.target.value }))}
+                  placeholder="Type your message..."
+                  rows={5}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setComposeOpen(false)}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleComposeSend}
+                disabled={!composeForm.to?.trim()}
+                className="rounded-xl bg-orange-500 px-4 py-2 text-xs font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardShell>
   );
 }

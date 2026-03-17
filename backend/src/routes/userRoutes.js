@@ -5,6 +5,7 @@ import {
   getUsers,
   getUsersOptions,
   resetPasswordController,
+  forceLogoutController,
   getMe,
   updateMe,
   changePasswordMe
@@ -66,6 +67,8 @@ router.post(
   ],
   resetPasswordController
 );
+
+router.post("/:id/force-logout", forceLogoutController);
 
 export { router as userRouter };
 

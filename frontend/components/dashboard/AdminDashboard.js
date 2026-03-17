@@ -1,26 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CalendarDays, User, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../services/api";
 import { GoalRing } from "./GoalRing";
 
 
-const upcomingMeetings = [
-  {
-    title: "Sam Saltman's Meeting - Sales Team",
-    time: "In 30 min"
-  }
-];
 
-const latestLeads = [
-  { name: "Silvia Zieme", time: "Just Now" },
-  { name: "Luke King", time: "1 Minute Ago" }
-];
+function formatTimeAgo(date) {
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours} hr ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  return d.toLocaleDateString();
+}
 
 export function AdminDashboard() {
-  const [summary, setSummary] = useState({ newLeads: null, totalRevenue: null });
+  const [summary, setSummary] = useState({
+    newLeads: null,
+    totalRevenue: null,
+    assignedLeadsCount: null,
+    wonLeadsCount: null,
+    upcomingCallsCount: null
+  });
   const [range, setRange] = useState("monthly");
   const [selectedDate, setSelectedDate] = useState(null);
   const [fromDate, setFromDate] = useState("");
@@ -30,6 +40,8 @@ export function AdminDashboard() {
   const [targetAmount, setTargetAmount] = useState(null);
   const [targetLoaded, setTargetLoaded] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [upcomingCalls, setUpcomingCalls] = useState([]);
+  const [latestLeads, setLatestLeads] = useState([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -82,7 +94,14 @@ export function AdminDashboard() {
         }
       })
       .catch(() => {
-        setSummary((prev) => ({ ...prev, newLeads: null, totalRevenue: null }));
+        setSummary((prev) => ({
+          ...prev,
+          newLeads: null,
+          totalRevenue: null,
+          assignedLeadsCount: null,
+          wonLeadsCount: null,
+          upcomingCallsCount: null
+        }));
       });
   };
 
@@ -110,6 +129,36 @@ export function AdminDashboard() {
   useEffect(() => {
     fetchLeaderboard(range, fromDate, toDate);
   }, [range, fromDate, toDate]);
+
+  useEffect(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14);
+    api
+      .get("/leads/scheduled-calls", {
+        params: { from: start.toISOString(), to: end.toISOString() }
+      })
+      .then((res) => {
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          const upcoming = res.data.data
+            .filter((c) => new Date(c.scheduledTime) >= now)
+            .slice(0, 5);
+          setUpcomingCalls(upcoming);
+        }
+      })
+      .catch(() => setUpcomingCalls([]));
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/dashboard/latest-leads")
+      .then((res) => {
+        if (res.data?.success && Array.isArray(res.data?.data)) {
+          setLatestLeads(res.data.data);
+        }
+      })
+      .catch(() => setLatestLeads([]));
+  }, []);
 
   return (
     <div className="space-y-4 text-slate-900 dark:text-slate-100">
@@ -209,8 +258,10 @@ export function AdminDashboard() {
           transition={{ delay: 0.05 }}
           className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">65</p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">New Customers</p>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+            {summary.assignedLeadsCount == null ? "—" : summary.assignedLeadsCount}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">Assigned Leads</p>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -218,8 +269,10 @@ export function AdminDashboard() {
           transition={{ delay: 0.1 }}
           className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">628</p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">Sent Invoices</p>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+            {summary.wonLeadsCount == null ? "—" : summary.wonLeadsCount}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">Won Leads</p>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -227,8 +280,10 @@ export function AdminDashboard() {
           transition={{ delay: 0.15 }}
           className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800"
         >
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">5</p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">Current Tasks</p>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+            {summary.upcomingCallsCount == null ? "—" : summary.upcomingCallsCount}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">Upcoming Calls</p>
         </motion.div>
       </div>
 
@@ -327,55 +382,105 @@ export function AdminDashboard() {
         <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
-              Upcoming Meetings
+              Upcoming Calls
             </p>
+            <Link
+              href="/calendar"
+              className="text-xs text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
+            >
+              View calendar
+            </Link>
           </div>
           <div className="space-y-3 text-xs">
-            {upcomingMeetings.map((m) => (
-              <div
-                key={m.title}
-                className="flex items-start gap-3 rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900"
-              >
-                <div className="mt-0.5 h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/30" />
-                <div>
-                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{m.time}</p>
-                  <p className="text-[13px] font-medium text-slate-900 dark:text-slate-50">
-                    {m.title}
-                  </p>
-                </div>
-              </div>
-            ))}
+            {upcomingCalls.length === 0 ? (
+              <p className="py-4 text-center text-slate-500 dark:text-slate-400">
+                No scheduled calls
+              </p>
+            ) : (
+              upcomingCalls.map((c) => {
+                const when = new Date(c.scheduledTime);
+                const lead = c.lead;
+                const title = lead
+                  ? `${lead.firstName || ""} ${lead.lastName || ""} – ${c.agenda || "Call"}`.trim() || c.agenda || "Scheduled call"
+                  : c.agenda || "Scheduled call";
+                const diffMs = when - new Date();
+                const diffMins = Math.round(diffMs / 60000);
+                const timeStr =
+                  diffMins > 0 && diffMins < 60
+                    ? `In ${diffMins} min`
+                    : diffMins >= 60 && diffMins < 1440
+                      ? `In ${Math.floor(diffMins / 60)} hr`
+                      : when.toLocaleString("en-IN", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        });
+                return (
+                  <Link
+                    key={c.id}
+                    href={lead?.id ? `/dashboard/leads/${lead.id}` : "/dashboard/leads"}
+                    className="flex items-start gap-3 rounded-2xl bg-white p-3 shadow-sm transition hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800"
+                  >
+                    <div className="mt-0.5 h-6 w-6 shrink-0 rounded-lg bg-emerald-100 dark:bg-emerald-500/30" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{timeStr}</p>
+                      <p className="text-[13px] font-medium text-slate-900 dark:text-slate-50 truncate">
+                        {title}
+                      </p>
+                      {c.user?.name && (
+                        <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                          {c.user.name}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </div>
 
         <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">Latest Leads</p>
-            <button className="text-xs text-orange-500 dark:text-orange-400">See All</button>
           </div>
           <div className="space-y-3 text-xs">
-            {latestLeads.map((lead) => (
-                <div
-                  key={lead.name}
-                  className="flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[11px] font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-50">
-                    {lead.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                    <div>
-                      <p className="text-[13px] font-medium text-slate-900 dark:text-slate-50">
-                      {lead.name}
-                    </p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-300">{lead.time}</p>
-                  </div>
-                </div>
-                <Search className="h-3.5 w-3.5 text-slate-400 dark:text-slate-300" />
-              </div>
-            ))}
+            {latestLeads.length === 0 ? (
+              <p className="py-4 text-center text-slate-500 dark:text-slate-400">No leads yet</p>
+            ) : (
+              latestLeads.map((lead) => {
+                const name = [lead.firstName, lead.lastName].filter(Boolean).join(" ") || "—";
+                const initials = name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase();
+                return (
+                  <Link
+                    key={lead.id}
+                    href={`/dashboard/leads/${lead.id}`}
+                    className="flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm transition hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-50">
+                        {initials}
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-medium text-slate-900 dark:text-slate-50">
+                          {name}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-300">
+                          {formatTimeAgo(lead.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <Search className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-300" />
+                  </Link>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

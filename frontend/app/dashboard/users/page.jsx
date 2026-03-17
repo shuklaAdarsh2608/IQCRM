@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createUser, fetchUsers, resetUserPassword } from "../../../services/userService";
+import { createUser, fetchUsers, resetUserPassword, forceLogoutUser } from "../../../services/userService";
 import { Select } from "../../../components/ui/Select";
 
 export default function UsersPage() {
@@ -22,6 +22,8 @@ export default function UsersPage() {
   });
   const [resetError, setResetError] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [forceLogoutId, setForceLogoutId] = useState(null);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -44,6 +46,17 @@ export default function UsersPage() {
 
   useEffect(() => {
     loadUsers();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("iqlead_user");
+      const user = raw ? JSON.parse(raw) : null;
+      setCurrentUserId(user?.id ?? null);
+    } catch {
+      setCurrentUserId(null);
+    }
   }, []);
 
   const handleChange = (e) => {
@@ -70,15 +83,32 @@ export default function UsersPage() {
     setResetError("");
   };
 
+  const handleForceLogout = async (id) => {
+    if (!window.confirm("Force logout this user? They will need to log in again.")) return;
+    setForceLogoutId(id);
+    try {
+      await forceLogoutUser(id);
+      await loadUsers();
+    } catch (err) {
+      // ignore or show toast
+    } finally {
+      setForceLogoutId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="mt-1 rounded-2xl bg-white/80 p-4 text-sm text-slate-700 shadow-sm dark:bg-slate-900/85 dark:text-slate-100">
         <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-50">Add User</h2>
         <form
           onSubmit={handleSubmit}
-          className="grid gap-3 md:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
+          className={`grid gap-3 sm:grid-cols-2 ${
+            ["USER", "TEAM_LEADER"].includes(form.role)
+              ? "md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]"
+              : "md:grid-cols-[1fr_1fr_1fr_1fr_auto]"
+          }`}
         >
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-300">
               Full name
             </label>
@@ -91,7 +121,7 @@ export default function UsersPage() {
               className="w-full rounded-xl border border-border bg-slate-50 px-3 py-2 text-xs outline-none dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
             />
           </div>
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-300">
               Email
             </label>
@@ -105,7 +135,7 @@ export default function UsersPage() {
               className="w-full rounded-xl border border-border bg-slate-50 px-3 py-2 text-xs outline-none dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
             />
           </div>
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-300">
               Temp password
             </label>
@@ -119,7 +149,7 @@ export default function UsersPage() {
               className="w-full rounded-xl border border-border bg-slate-50 px-3 py-2 text-xs outline-none dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
             />
           </div>
-          <div className="space-y-1">
+          <div className="min-w-0 space-y-1">
             <Select
               label="Role"
               options={[
@@ -142,7 +172,7 @@ export default function UsersPage() {
             />
           </div>
           {["USER", "TEAM_LEADER"].includes(form.role) && (
-            <div className="space-y-1 md:col-span-2 lg:col-span-1">
+            <div className="min-w-0 space-y-1">
               <Select
                 label="Manager"
                 options={users
@@ -159,7 +189,7 @@ export default function UsersPage() {
               />
             </div>
           )}
-          <div className="flex items-end">
+          <div className="flex min-w-0 items-end">
             <button
               type="submit"
               className="h-9 rounded-full bg-orange-500 px-6 text-xs font-medium text-white shadow-sm hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-400"
@@ -293,13 +323,25 @@ export default function UsersPage() {
                     {u.isActive ? "Active" : "Disabled"}
                   </td>
                   <td className="px-2 py-2 align-middle text-[12px] text-slate-600">
-                    <button
-                      type="button"
-                      onClick={() => handleResetPassword(u.id)}
-                      className="rounded-full bg-orange-100 px-3 py-1 text-[11px] font-medium text-orange-700 hover:bg-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:hover:bg-orange-400/30"
-                    >
-                      Reset password
-                    </button>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleResetPassword(u.id)}
+                        className="rounded-full bg-orange-100 px-3 py-1 text-[11px] font-medium text-orange-700 hover:bg-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:hover:bg-orange-400/30"
+                      >
+                        Reset password
+                      </button>
+                      {currentUserId !== u.id && (
+                        <button
+                          type="button"
+                          onClick={() => handleForceLogout(u.id)}
+                          disabled={forceLogoutId === u.id}
+                          className="rounded-full bg-slate-200 px-3 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-300 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 disabled:opacity-50"
+                        >
+                          {forceLogoutId === u.id ? "Logging out…" : "Force logout"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

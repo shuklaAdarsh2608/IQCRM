@@ -294,6 +294,64 @@ export async function rejectDeleteRequest(req, res, next) {
   }
 }
 
+async function resolveVisibleUserIdsForCalls(role, userId) {
+  if (["SUPER_ADMIN", "ADMIN"].includes(role)) {
+    return null;
+  }
+  if (role === "MANAGER") {
+    const tls = await User.findAll({
+      where: { managerId: userId, isActive: true },
+      attributes: ["id"]
+    });
+    const tlIds = tls.map((u) => u.id);
+    const ses = await User.findAll({
+      where: { managerId: { [Op.in]: tlIds }, isActive: true },
+      attributes: ["id"]
+    });
+    return [userId, ...tlIds, ...ses.map((u) => u.id)];
+  }
+  if (role === "TEAM_LEADER") {
+    const ses = await User.findAll({
+      where: { managerId: userId, isActive: true },
+      attributes: ["id"]
+    });
+    return [userId, ...ses.map((u) => u.id)];
+  }
+  return [userId];
+}
+
+export async function listScheduledCalls(req, res, next) {
+  try {
+    const { from, to } = req.query;
+    const now = new Date();
+    const start = from ? new Date(from) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = to ? new Date(to) : new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const where = {
+      scheduledTime: { [Op.gte]: start, [Op.lt]: end },
+      status: "PENDING"
+    };
+
+    const visibleIds = await resolveVisibleUserIdsForCalls(req.user.role, req.user.id);
+    if (visibleIds !== null) {
+      where.userId = { [Op.in]: visibleIds };
+    }
+
+    const calls = await ScheduledCall.findAll({
+      where,
+      order: [["scheduledTime", "ASC"]],
+      include: [
+        { model: Lead, as: "lead", attributes: ["id", "firstName", "lastName", "company"] },
+        { model: User, as: "user", attributes: ["id", "name", "email"] }
+      ]
+    });
+
+    res.json({ success: true, data: calls });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function scheduleCall(req, res, next) {
   try {
     const { id } = req.params;

@@ -20,7 +20,11 @@ export async function registerUser({ name, email, password, role = "USER", manag
     managerId
   });
 
-  const token = signToken({ id: user.id, role: user.role });
+  const token = signToken({
+    id: user.id,
+    role: user.role,
+    tokenVersion: user.tokenVersion ?? 0
+  });
 
   return { user, token };
 }
@@ -46,7 +50,11 @@ export async function loginUser({ email, password }) {
     throw error;
   }
 
-  const token = signToken({ id: user.id, role: user.role });
+  const token = signToken({
+    id: user.id,
+    role: user.role,
+    tokenVersion: user.tokenVersion ?? 0
+  });
 
   return { user, token };
 }

@@ -122,7 +122,7 @@ export default function ActivityLogPage() {
             <select
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-xs font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus:border-orange-400 focus:ring-2 focus:ring-orange-200/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              className="appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 pr-7 text-xs font-medium text-slate-700 outline-none transition hover:bg-slate-50 focus:border-orange-400 focus:ring-2 focus:ring-orange-200/60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:border-slate-500 dark:focus:ring-slate-500/30"
             >
               <option value="all">All users</option>
               {users.map((u) => (
@@ -139,7 +139,7 @@ export default function ActivityLogPage() {
             type="button"
             onClick={handleExport}
             disabled={exporting || !isAdmin}
-            className="inline-flex items-center gap-1 rounded-full border border-emerald-500 px-4 py-1.5 text-xs font-medium text-emerald-600 shadow-sm transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-emerald-200 disabled:text-emerald-300 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+            className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-orange-500 hover:border-orange-500 hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-orange-500 dark:hover:border-orange-500 dark:hover:text-white dark:disabled:border-slate-700 dark:disabled:text-slate-500"
           >
             {exporting ? "Exporting…" : "Export log"}
           </button>
@@ -155,28 +155,28 @@ export default function ActivityLogPage() {
           No activity recorded yet.
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {logs.map((log) => (
             <div
               key={log.id}
-              className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] dark:border-slate-800 dark:bg-slate-900"
+              className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-[11px] dark:border-slate-700 dark:bg-slate-800/60"
             >
-              <div className="mt-0.5 h-6 w-6 rounded-full bg-slate-200 text-center text-[10px] font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-50">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[11px] font-semibold text-slate-700 dark:bg-slate-600 dark:text-slate-100">
                 {log.user?.name
                   ?.split(" ")
                   .map((n) => n[0])
                   .join("") || "U"}
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center justify-between gap-1">
+              <div className="min-w-0 flex-1 py-0.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium text-slate-800 dark:text-slate-50">
                     {log.user?.name || "Unknown user"}
                   </p>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                  <span className="shrink-0 text-[10px] text-slate-500 dark:text-slate-400">
                     {log.createdAt ? new Date(log.createdAt).toLocaleString() : ""}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-300">
+                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
                   {EVENT_LABELS[log.action] || log.action}
                   {log.lead && (
                     <>
@@ -186,7 +186,7 @@ export default function ActivityLogPage() {
                   )}
                 </p>
                 {log.details && (
-                  <p className="mt-0.5 line-clamp-2 text-[10px] text-slate-500 dark:text-slate-400">
+                  <p className="mt-1 line-clamp-3 text-[11px] text-slate-500 dark:text-slate-400">
                     {log.details}
                   </p>
                 )}

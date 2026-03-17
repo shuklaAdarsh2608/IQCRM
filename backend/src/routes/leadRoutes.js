@@ -2,6 +2,7 @@ import express from "express";
 import { body } from "express-validator";
 import {
   listLeads,
+  listScheduledCalls,
   getLeadById,
   getLeadAuditLog,
   createLead,
@@ -27,6 +28,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.get("/", listLeads);
+router.get("/scheduled-calls", listScheduledCalls);
 router.get("/export/excel", requireRole(["SUPER_ADMIN", "ADMIN"]), exportLeadsToExcel);
 router.post(
   "/bulk-assign",

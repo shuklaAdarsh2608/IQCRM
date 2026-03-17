@@ -3,6 +3,22 @@ import { Op } from "sequelize";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { Lead } from "../models/Lead.js";
 import { User } from "../models/User.js";
+import { ScheduledCall } from "../models/ScheduledCall.js";
+
+/** Admin, Super Admin, Manager: see all. Team Leader: self + team. User: own only. */
+async function resolveVisibleUserIds(currentUser) {
+  if (["SUPER_ADMIN", "ADMIN", "MANAGER"].includes(currentUser.role)) {
+    return null; // null = no filter, see all
+  }
+  if (currentUser.role === "TEAM_LEADER") {
+    const ses = await User.findAll({
+      where: { managerId: currentUser.id, isActive: true },
+      attributes: ["id"]
+    });
+    return [currentUser.id, ...ses.map((u) => u.id)];
+  }
+  return [currentUser.id];
+}
 
 const router = express.Router();
 
@@ -43,8 +59,9 @@ router.get("/leaderboard", async (req, res, next) => {
       ...(start != null && end != null && { createdAt: { [Op.gte]: start, [Op.lt]: end } })
     };
 
-    if (!["SUPER_ADMIN", "ADMIN"].includes(req.user.role)) {
-      where.ownerId = req.user.id;
+    const visibleIds = await resolveVisibleUserIds(req.user);
+    if (visibleIds !== null) {
+      where.ownerId = { [Op.in]: visibleIds };
     }
 
     const leads = await Lead.findAll({
@@ -119,21 +136,64 @@ router.get("/summary", async (req, res, next) => {
       where.createdAt = { [Op.gte]: start, [Op.lt]: end };
     }
 
-    // Admins see all, others only their own leads
-    if (!["SUPER_ADMIN", "ADMIN"].includes(req.user.role)) {
-      where.ownerId = req.user.id;
+    const visibleIds = await resolveVisibleUserIds(req.user);
+    if (visibleIds !== null) {
+      where.ownerId = { [Op.in]: visibleIds };
     }
 
     const newLeads = await Lead.count({ where });
     const totalRevenue = await Lead.sum("valueAmount", { where });
 
+    // Assigned leads count (all time) - role-based visibility
+    const assignedWhere = {};
+    if (visibleIds !== null) assignedWhere.ownerId = { [Op.in]: visibleIds };
+    const assignedLeadsCount = await Lead.count({ where: assignedWhere });
+
+    // Won leads count (all time) - role-based visibility
+    const wonWhere = { status: "WON" };
+    if (visibleIds !== null) wonWhere.ownerId = { [Op.in]: visibleIds };
+    const wonLeadsCount = await Lead.count({ where: wonWhere });
+
+    // Upcoming calls count - role-based visibility
+    const now = new Date();
+    const callsWhere = {
+      scheduledTime: { [Op.gte]: now },
+      status: "PENDING"
+    };
+    if (visibleIds !== null) {
+      callsWhere.userId = { [Op.in]: visibleIds };
+    }
+    const upcomingCallsCount = await ScheduledCall.count({ where: callsWhere });
+
     res.json({
       success: true,
       data: {
         newLeads,
-        totalRevenue: Number(totalRevenue || 0)
+        totalRevenue: Number(totalRevenue || 0),
+        assignedLeadsCount,
+        wonLeadsCount,
+        upcomingCallsCount
       }
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/latest-leads", async (req, res, next) => {
+  try {
+    const visibleIds = await resolveVisibleUserIds(req.user);
+    const where = {};
+    if (visibleIds !== null) {
+      where.ownerId = { [Op.in]: visibleIds };
+    }
+    const leads = await Lead.findAll({
+      where,
+      limit: 5,
+      order: [["createdAt", "DESC"]],
+      attributes: ["id", "firstName", "lastName", "createdAt"]
+    });
+    res.json({ success: true, data: leads });
   } catch (err) {
     next(err);
   }

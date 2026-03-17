@@ -3,6 +3,7 @@ import {
   listUsers,
   listUsersForOptions,
   resetUserPassword,
+  forceLogoutUser,
   getProfile,
   updateProfile,
   changePassword
@@ -50,6 +51,19 @@ export async function resetPasswordController(req, res, next) {
     res.json({
       success: true,
       data: { id: user.id }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function forceLogoutController(req, res, next) {
+  try {
+    const { id } = req.params;
+    await forceLogoutUser(Number(id));
+    res.json({
+      success: true,
+      message: "User has been logged out. Their session is now invalid."
     });
   } catch (err) {
     next(err);

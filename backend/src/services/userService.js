@@ -89,6 +89,19 @@ export async function updateProfile(userId, { name, email }) {
   return user;
 }
 
+export async function forceLogoutUser(userId) {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+  const version = (user.tokenVersion ?? 0) + 1;
+  user.tokenVersion = version;
+  await user.save();
+  return user;
+}
+
 export async function changePassword(userId, currentPassword, newPassword) {
   const user = await User.findByPk(userId);
   if (!user) {
