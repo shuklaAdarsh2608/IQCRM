@@ -123,7 +123,7 @@ export function Sidebar({ open, onClose }) {
       {/* Sidebar: drawer on mobile only; hidden on md and up */}
       <aside
         className={clsx(
-          "flex h-full flex-col rounded-r-2xl bg-white/98 p-4 shadow-xl",
+          "flex h-full flex-col rounded-r-2xl bg-white p-4 shadow-xl dark:bg-slate-900 dark:text-slate-100",
           "fixed left-0 top-0 z-40 h-full w-64 transition-transform duration-200 ease-out lg:hidden",
           open ? "translate-x-0" : "-translate-x-full"
         )}

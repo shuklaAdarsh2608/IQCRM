@@ -20,6 +20,20 @@ export function DashboardShell({ children, title, subtitle }) {
     }
   }, [router]);
 
+  // Prevent background scroll when mobile sidebar is open
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const originalOverflow = document.body.style.overflow;
+    if (sidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = originalOverflow || "";
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow || "";
+    };
+  }, [sidebarOpen]);
+
   if (checkingAuth) {
     return null;
   }
