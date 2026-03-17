@@ -7,6 +7,7 @@ import { LeadRemark } from "../models/LeadRemark.js";
 import { ScheduledCall } from "../models/ScheduledCall.js";
 import { ImportLog } from "../models/ImportLog.js";
 import { NotificationLog } from "../models/NotificationLog.js";
+import { ActivityLog } from "../models/ActivityLog.js";
 import { User } from "../models/User.js";
 import { parse } from "csv-parse/sync";
 import * as XLSX from "xlsx";
@@ -188,6 +189,14 @@ export async function deleteLead(req, res, next) {
     }
     if (req.user.role === "SUPER_ADMIN") {
       await lead.destroy();
+      try {
+        await ActivityLog.create({
+          userId: req.user.id,
+          leadId: lead.id,
+          action: "LEAD_DELETED",
+          details: "Lead deleted"
+        });
+      } catch {}
       return res.json({ success: true, data: { deleted: true }, message: "Lead deleted." });
     }
     if (req.user.role === "ADMIN") {
@@ -565,6 +574,15 @@ export async function createLead(req, res, next) {
     const withOwner = await Lead.findByPk(lead.id, {
       include: [{ model: User, as: "owner", attributes: ["id", "name"] }]
     });
+    // Log lead creation
+    try {
+      await ActivityLog.create({
+        userId,
+        leadId: lead.id,
+        action: "LEAD_CREATED",
+        details: `Lead created: ${lead.firstName || ""} ${lead.lastName || ""}`.trim()
+      });
+    } catch {}
     res.status(201).json({ success: true, data: withOwner });
   } catch (err) {
     next(err);
@@ -644,6 +662,15 @@ export async function updateLead(req, res, next) {
     const updated = await Lead.findByPk(lead.id, {
       include: [{ model: User, as: "owner", attributes: ["id", "name"] }]
     });
+    // Log lead update summary
+    try {
+      await ActivityLog.create({
+        userId,
+        leadId: lead.id,
+        action: "LEAD_UPDATED",
+        details: "Lead details updated"
+      });
+    } catch {}
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
