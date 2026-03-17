@@ -97,7 +97,7 @@ export function Topbar({ onMenuClick }) {
   });
 
   return (
-    <header className="sticky top-0 z-20 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border-b border-slate-200 bg-white px-4 py-2 shadow-sm sm:mb-3 sm:px-6 sm:py-2.5 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100">
+    <header className="sticky top-0 z-20 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-md sm:px-7 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
       <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
         {onMenuClick && (
           <button

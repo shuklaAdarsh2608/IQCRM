@@ -16,7 +16,8 @@ body {
 }
 
 body {
-  @apply bg-white text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100;
+  /* Light mode: subtle "white smoke" background, dark mode unchanged */
+  @apply bg-slate-100 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100;
 }
 
 code,
@@ -26,7 +27,8 @@ pre {
 
 @layer utilities {
   .bg-background {
-    @apply bg-white dark:bg-slate-950;
+    /* Use same base background helper for dashboard shell */
+    @apply bg-slate-100 dark:bg-slate-950;
   }
 
   .border-border {
