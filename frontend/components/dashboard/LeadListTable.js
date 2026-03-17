@@ -71,10 +71,15 @@ export function LeadListTable() {
         const raw = window.localStorage.getItem("iqlead_user");
         if (raw) {
           const user = JSON.parse(raw);
-          setCanBulkAssign(ADMIN_ROLES.includes(user.role));
+          const isAdminRole = ADMIN_ROLES.includes(user.role);
+          setCanBulkAssign(isAdminRole);
           setIsSuperAdmin(user.role === "SUPER_ADMIN");
           setCurrentUserId(user.id);
           setUserRole(user.role || null);
+          // Default to "All leads" tab for admin roles when first loading
+          if (isAdminRole) {
+            setActiveTab((prev) => (prev === TAB_MY_LEADS ? TAB_ALL_LEADS : prev));
+          }
         }
       } catch {
         // ignore
@@ -536,11 +541,11 @@ export function LeadListTable() {
                 const isWon = (lead.status || "").toUpperCase() === "WON";
                 const baseRowClass = idx % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/40" : "";
                 const limitedHighlight = isLimitedView
-                  ? "bg-amber-50/70 border-l-4 border-amber-400 dark:bg-amber-500/10 dark:border-amber-400"
+                  ? "bg-amber-50/70 border-l-4 border-amber-400 dark:bg-slate-800/80 dark:border-emerald-400"
                   : "";
                 const wonHighlight =
                   !isLimitedView && isWon
-                    ? "bg-amber-50/80 border-l-4 border-amber-400 dark:bg-amber-500/10 dark:border-amber-400"
+                    ? "bg-amber-50/80 border-l-4 border-amber-400 dark:bg-slate-800/80 dark:border-emerald-400"
                     : "";
                 return (
                   <tr
