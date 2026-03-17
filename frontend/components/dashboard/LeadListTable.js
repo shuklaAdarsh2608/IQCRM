@@ -517,14 +517,18 @@ export function LeadListTable() {
               )}
             </thead>
             <tbody className="bg-white dark:bg-slate-900">
-              {filtered.map((lead, idx) => (
-                <tr
-                  key={lead.id}
-                  className={`cursor-pointer transition hover:bg-orange-50/50 dark:hover:bg-slate-800/60 ${
-                    idx % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/40" : ""
-                  }`}
-                  onClick={() => handleRowClick(lead.id)}
-                >
+              {filtered.map((lead, idx) => {
+                const isWon = (lead.status || "").toUpperCase() === "WON";
+                const baseRowClass = idx % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/40" : "";
+                const wonHighlight = isWon
+                  ? "bg-amber-50/80 border-l-4 border-amber-400 dark:bg-amber-500/10 dark:border-amber-400"
+                  : "";
+                return (
+                  <tr
+                    key={lead.id}
+                    className={`cursor-pointer transition hover:bg-orange-50/50 dark:hover:bg-slate-800/60 ${baseRowClass} ${wonHighlight}`}
+                    onClick={() => handleRowClick(lead.id)}
+                  >
                   {isLimitedView ? (
                     <>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm font-medium text-slate-900 dark:border-slate-800 dark:text-slate-50">
@@ -621,8 +625,9 @@ export function LeadListTable() {
                       )}
                     </>
                   )}
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
