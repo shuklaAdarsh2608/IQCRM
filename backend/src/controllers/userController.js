@@ -6,7 +6,8 @@ import {
   forceLogoutUser,
   getProfile,
   updateProfile,
-  changePassword
+  changePassword,
+  deleteUserById
 } from "../services/userService.js";
 
 export async function getUsersOptions(req, res, next) {
@@ -106,6 +107,19 @@ export async function changePasswordMe(req, res, next) {
     const { currentPassword, newPassword } = req.body;
     await changePassword(req.user.id, currentPassword, newPassword);
     res.json({ success: true, message: "Password updated" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteUserController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const result = await deleteUserById(req.user, Number(id));
+    res.json({
+      success: true,
+      data: result
+    });
   } catch (err) {
     next(err);
   }

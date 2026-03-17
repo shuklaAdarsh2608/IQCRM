@@ -8,7 +8,8 @@ import {
   forceLogoutController,
   getMe,
   updateMe,
-  changePasswordMe
+  changePasswordMe,
+  deleteUserController
 } from "../controllers/userController.js";
 import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
@@ -69,6 +70,9 @@ router.post(
 );
 
 router.post("/:id/force-logout", forceLogoutController);
+
+// Only SUPER_ADMIN can delete users
+router.delete("/:id", requireRole(["SUPER_ADMIN"]), deleteUserController);
 
 export { router as userRouter };
 

@@ -16,3 +16,7 @@ export async function forceLogoutUser(userId) {
   return api.post(`/users/${userId}/force-logout`);
 }
 
+export async function deleteUser(userId) {
+  return api.delete(`/users/${userId}`);
+}
+

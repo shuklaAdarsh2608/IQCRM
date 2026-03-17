@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createUser, fetchUsers, resetUserPassword, forceLogoutUser } from "../../../services/userService";
+import { createUser, fetchUsers, resetUserPassword, forceLogoutUser, deleteUser } from "../../../services/userService";
 import { Select } from "../../../components/ui/Select";
 
 export default function UsersPage() {
@@ -24,6 +24,7 @@ export default function UsersPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [forceLogoutId, setForceLogoutId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -96,6 +97,22 @@ export default function UsersPage() {
     }
   };
 
+  const handleDeleteUser = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user? This cannot be undone.")) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      await deleteUser(id);
+      await loadUsers();
+    } catch (err) {
+      // optional: surface error
+      alert(err?.response?.data?.message || "Failed to delete user.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="mt-1 rounded-2xl bg-white/80 p-4 text-sm text-slate-700 shadow-sm dark:bg-slate-900/85 dark:text-slate-100">
@@ -153,7 +170,7 @@ export default function UsersPage() {
             <Select
               label="Role"
               options={[
-                { value: "USER", label: "Sales Executive" },
+                { value: "USER", label: "Relationship Manager" },
                 { value: "TEAM_LEADER", label: "Team Leader" },
                 { value: "MANAGER", label: "Manager" },
                 { value: "ADMIN", label: "Admin" },
@@ -332,14 +349,24 @@ export default function UsersPage() {
                         Reset password
                       </button>
                       {currentUserId !== u.id && (
-                        <button
-                          type="button"
-                          onClick={() => handleForceLogout(u.id)}
-                          disabled={forceLogoutId === u.id}
-                          className="rounded-full bg-slate-200 px-3 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-300 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 disabled:opacity-50"
-                        >
-                          {forceLogoutId === u.id ? "Logging out…" : "Force logout"}
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleForceLogout(u.id)}
+                            disabled={forceLogoutId === u.id}
+                            className="rounded-full bg-slate-200 px-3 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-300 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 disabled:opacity-50"
+                          >
+                            {forceLogoutId === u.id ? "Logging out…" : "Force logout"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(u.id)}
+                            disabled={deletingId === u.id}
+                            className="rounded-full bg-red-100 px-3 py-1 text-[11px] font-medium text-red-700 hover:bg-red-200 dark:bg-red-500/20 dark:text-red-300 dark:hover:bg-red-400/30 disabled:opacity-50"
+                          >
+                            {deletingId === u.id ? "Deleting…" : "Delete"}
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>

@@ -15,6 +15,7 @@ const STATUS_OPTIONS = [
   "NEGOTIATION",
   "WON",
   "LOST",
+  "NOT_INTERESTED",
   "RESCHEDULED",
   "JUNK"
 ];
@@ -400,7 +401,7 @@ export default function LeadDetailPage({ params }) {
                 </div>
                 <div>
                   <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                    Deal amount (₹)
+                    Total Revenue (₹)
                   </label>
                   <input
                     type="number"

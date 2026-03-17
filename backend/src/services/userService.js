@@ -121,3 +121,26 @@ export async function changePassword(userId, currentPassword, newPassword) {
   return user;
 }
 
+export async function deleteUserById(requestingUser, userId) {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+  // Prevent deleting self
+  if (requestingUser.id === user.id) {
+    const error = new Error("You cannot delete your own account.");
+    error.status = 400;
+    throw error;
+  }
+  // Only SUPER_ADMIN can delete users
+  if (requestingUser.role !== "SUPER_ADMIN") {
+    const error = new Error("Only Super Admin can delete users.");
+    error.status = 403;
+    throw error;
+  }
+  await user.destroy();
+  return { id: userId };
+}
+
