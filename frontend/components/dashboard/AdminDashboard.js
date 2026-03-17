@@ -6,11 +6,6 @@ import { motion } from "framer-motion";
 import api from "../../services/api";
 import { GoalRing } from "./GoalRing";
 
-const leadSources = [
-  { label: "Email Parsing", value: 7896, color: "bg-orange-400" },
-  { label: "API", value: 325, color: "bg-purple-400" },
-  { label: "Lead Scrap", value: 24, color: "bg-slate-700" }
-];
 
 const upcomingMeetings = [
   {
@@ -31,8 +26,10 @@ export function AdminDashboard() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [role, setRole] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [targetAmount, setTargetAmount] = useState(null);
   const [targetLoaded, setTargetLoaded] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -41,6 +38,7 @@ export function AdminDashboard() {
       const user = raw ? JSON.parse(raw) : null;
       if (!user?.id) return;
       setRole(user.role);
+      setCurrentUser(user);
       const now = new Date();
       api
         .get("/targets", {
@@ -93,6 +91,26 @@ export function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fetchLeaderboard = (nextRange, fromOverride, toOverride) => {
+    const params = { range: nextRange };
+    if (nextRange === "custom" && fromOverride && toOverride) {
+      params.from = fromOverride;
+      params.to = toOverride;
+    }
+    api
+      .get("/dashboard/leaderboard", { params })
+      .then((res) => {
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          setLeaderboard(res.data.data);
+        }
+      })
+      .catch(() => setLeaderboard([]));
+  };
+
+  useEffect(() => {
+    fetchLeaderboard(range, fromDate, toDate);
+  }, [range, fromDate, toDate]);
+
   return (
     <div className="space-y-4 text-slate-900 dark:text-slate-100">
       {/* Top filters row */}
@@ -102,7 +120,8 @@ export function AdminDashboard() {
             { key: "today", label: "Today" },
             { key: "yesterday", label: "Yesterday" },
             { key: "weekly", label: "Weekly" },
-            { key: "monthly", label: "Monthly" }
+            { key: "monthly", label: "Monthly" },
+            { key: "all", label: "All time" }
           ].map((opt) => (
             <button
               key={opt.key}
@@ -157,9 +176,16 @@ export function AdminDashboard() {
           </button>
           <button className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-slate-700 shadow-sm dark:bg-slate-900/90 dark:text-slate-100">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-[11px] font-medium dark:bg-slate-700 dark:text-slate-50">
-              JS
+              {currentUser?.name
+                ? currentUser.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()
+                : "—"}
             </span>
-            <span>John Sharts</span>
+            <span>{currentUser?.name || "User"}</span>
           </button>
         </div>
       </div>
@@ -251,26 +277,47 @@ export function AdminDashboard() {
         </div>
 
         <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/80 dark:border dark:border-slate-800">
-          <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-50">Lead Source</p>
+          <p className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-50">
+            Revenue Leaderboard
+          </p>
           <div className="space-y-3 text-xs">
-            {leadSources.map((src) => (
-              <div key={src.label} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-slate-800 dark:text-slate-100">{src.label}</p>
-                  <p className="text-slate-500 dark:text-slate-300">{src.value}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 14 }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`h-1.5 w-3 rounded-full ${src.color} opacity-${
-                        60 + (i % 3) * 10
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+            {leaderboard.length === 0 ? (
+              <p className="py-4 text-center text-slate-500 dark:text-slate-400">
+                No revenue in selected period
+              </p>
+            ) : (
+              leaderboard.map((entry, idx) => {
+                const colors = ["bg-amber-400", "bg-purple-400", "bg-slate-500"];
+                const color = colors[idx % 3];
+                return (
+                  <div key={entry.userId} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                          {idx + 1}
+                        </span>
+                        <p className="font-medium text-slate-800 dark:text-slate-100 truncate max-w-[120px]">
+                          {entry.name}
+                        </p>
+                      </div>
+                      <p className="font-medium text-slate-800 dark:text-slate-100 shrink-0">
+                        ₹{Number(entry.revenue || 0).toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 14 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={`h-1.5 w-3 rounded-full ${color} ${
+                            i % 3 === 0 ? "opacity-60" : i % 3 === 1 ? "opacity-70" : "opacity-80"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
