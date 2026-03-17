@@ -140,10 +140,7 @@ export function AdminDashboard() {
       })
       .then((res) => {
         if (res.data?.success && Array.isArray(res.data.data)) {
-          const upcoming = res.data.data
-            .filter((c) => new Date(c.scheduledTime) >= now)
-            .slice(0, 5);
-          setUpcomingCalls(upcoming);
+          setUpcomingCalls(res.data.data.slice(0, 5));
         }
       })
       .catch(() => setUpcomingCalls([]));

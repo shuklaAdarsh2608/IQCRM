@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import api from "../../../../../services/api";
 
 export default function ScheduleCallForLeadPage({ params }) {
+  const router = useRouter();
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [agenda, setAgenda] = useState("");
@@ -31,6 +33,7 @@ export default function ScheduleCallForLeadPage({ params }) {
       });
       setMessage({ type: "success", text: "Call scheduled successfully." });
       setAgenda("");
+      router.push("/calendar");
     } catch (err) {
       setMessage({
         type: "error",
