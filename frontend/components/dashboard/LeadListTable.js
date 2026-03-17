@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { CalendarDays } from "lucide-react";
 import api from "../../services/api";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
@@ -50,6 +51,9 @@ export function LeadListTable() {
     owner: "",
     contact: ""
   });
+  const [dateRange, setDateRange] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   // Debounce search: update searchQuery after user stops typing
   useEffect(() => {
@@ -92,6 +96,38 @@ export function LeadListTable() {
     if (searchQuery) {
       params.set("search", searchQuery);
     }
+
+    // Date range filter for My leads (and other tabs when set)
+    let fromForQuery = "";
+    let toForQuery = "";
+    const today = new Date();
+    const toYMD = (d) => d.toISOString().slice(0, 10);
+    if (dateRange === "today") {
+      fromForQuery = toYMD(today);
+      toForQuery = toYMD(today);
+    } else if (dateRange === "yesterday") {
+      const y = new Date(today);
+      y.setDate(y.getDate() - 1);
+      fromForQuery = toYMD(y);
+      toForQuery = toYMD(y);
+    } else if (dateRange === "weekly") {
+      const start = new Date(today);
+      start.setDate(start.getDate() - 6);
+      fromForQuery = toYMD(start);
+      toForQuery = toYMD(today);
+    } else if (dateRange === "monthly") {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      fromForQuery = toYMD(start);
+      toForQuery = toYMD(end);
+    } else if (dateRange === "custom" && fromDate && toDate) {
+      fromForQuery = fromDate;
+      toForQuery = toDate;
+    }
+    if (fromForQuery && toForQuery) {
+      params.set("from", fromForQuery);
+      params.set("to", toForQuery);
+    }
     api
       .get(`/leads?${params.toString()}`)
       .then((res) => {
@@ -104,7 +140,7 @@ export function LeadListTable() {
       })
       .catch(() => setLeads([]))
       .finally(() => setLoading(false));
-  }, [effectiveTab, currentUserId, page, searchQuery]);
+  }, [effectiveTab, currentUserId, page, searchQuery, dateRange, fromDate, toDate]);
 
   // Extra client-side filter for some tabs
   const baseForTab =
@@ -309,6 +345,62 @@ export function LeadListTable() {
           />
         </div>
       </div>
+
+      {effectiveTab === TAB_MY_LEADS && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900/80 dark:text-slate-100">
+          <div className="flex flex-wrap items-center gap-1">
+            {[
+              { key: "today", label: "Today" },
+              { key: "yesterday", label: "Yesterday" },
+              { key: "weekly", label: "Weekly" },
+              { key: "monthly", label: "Monthly" },
+              { key: "all", label: "All time" }
+            ].map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setDateRange(opt.key)}
+                className={`rounded-full px-3 py-1 transition-colors ${
+                  dateRange === opt.key
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100"
+                    : "bg-transparent text-slate-600 hover:bg-white/70 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-slate-700 shadow-sm dark:bg-slate-900 dark:text-slate-100">
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-xs">From</span>
+            </div>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="min-w-0 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 outline-none transition-colors focus:ring-2 focus:ring-orange-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+            <span className="text-xs text-slate-500 dark:text-slate-300">to</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="min-w-0 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700 outline-none transition-colors focus:ring-2 focus:ring-orange-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (!fromDate || !toDate) return;
+                setDateRange("custom");
+              }}
+              className="rounded-full bg-white/90 px-3 py-1 text-xs text-slate-700 shadow-sm transition-colors hover:bg-white dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
         {loading ? (

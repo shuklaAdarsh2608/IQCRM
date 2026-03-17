@@ -66,7 +66,16 @@ async function logLeadAudit(leadId, updatedBy, fieldName, oldValue, newValue) {
 
 export async function listLeads(req, res, next) {
   try {
-    const { page = 1, limit = 50, status, ownerId, poolOnly, search: searchQuery } = req.query;
+    const {
+      page = 1,
+      limit = 50,
+      status,
+      ownerId,
+      poolOnly,
+      search: searchQuery,
+      from,
+      to
+    } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
     const where = {};
     if (status) where.status = status;
@@ -107,6 +116,17 @@ export async function listLeads(req, res, next) {
         ]
       });
       where[Op.and] = where[Op.and] ? [...where[Op.and], { [Op.or]: searchConditions }] : [{ [Op.or]: searchConditions }];
+    }
+
+    // Optional createdAt date range filter (for My leads date preferences)
+    if (from && to) {
+      const fromDate = new Date(from);
+      const toDate = new Date(to);
+      if (!Number.isNaN(fromDate.getTime()) && !Number.isNaN(toDate.getTime())) {
+        const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+        const end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() + 1);
+        where.createdAt = { [Op.gte]: start, [Op.lt]: end };
+      }
     }
 
     const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 100);
