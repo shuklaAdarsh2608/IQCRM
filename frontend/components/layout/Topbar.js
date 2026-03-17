@@ -124,7 +124,7 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: hidden on mobile (use hamburger/sidebar); visible from md up */}
-      <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-2 overflow-x-auto py-1 text-xs font-medium text-slate-600 lg:flex lg:justify-center lg:gap-3 dark:text-slate-200">
+      <nav className="hidden min-w-0 flex-1 flex-nowrap items-center justify-center gap-2 overflow-x-auto whitespace-nowrap py-1 text-xs font-medium text-slate-600 lg:flex lg:justify-center lg:gap-3 dark:text-slate-200">
         {navItems.map((item) => {
           const active =
             pathname === item.href ||

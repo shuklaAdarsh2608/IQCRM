@@ -43,6 +43,13 @@ export function LeadListTable() {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [selectedExportStatuses, setSelectedExportStatuses] = useState([]);
   const [userRole, setUserRole] = useState(null);
+  const [assignedFilters, setAssignedFilters] = useState({
+    name: "",
+    company: "",
+    status: "",
+    owner: "",
+    contact: ""
+  });
 
   // Debounce search: update searchQuery after user stops typing
   useEffect(() => {
@@ -100,10 +107,32 @@ export function LeadListTable() {
   }, [effectiveTab, currentUserId, page, searchQuery]);
 
   // Extra client-side filter for some tabs
-  const filtered =
+  const baseForTab =
     effectiveTab === TAB_ASSIGNED
       ? leads.filter((l) => l.ownerId != null || (l.owner && l.owner.id != null))
       : leads;
+
+  const showAssignedColumnFilters = isAdmin && effectiveTab === TAB_ASSIGNED && !isLimitedView;
+
+  const filtered = showAssignedColumnFilters
+    ? baseForTab.filter((l) => {
+        const fullName = `${l.firstName || ""} ${l.lastName || ""}`.toLowerCase();
+        const ownerName = (l.owner?.name || "").toLowerCase();
+        const contact = (l.email || l.phone || "").toLowerCase();
+        return (
+          (!assignedFilters.name ||
+            fullName.includes(assignedFilters.name.trim().toLowerCase())) &&
+          (!assignedFilters.company ||
+            (l.company || "").toLowerCase().includes(assignedFilters.company.trim().toLowerCase())) &&
+          (!assignedFilters.status ||
+            (l.status || "").toLowerCase().includes(assignedFilters.status.trim().toLowerCase())) &&
+          (!assignedFilters.owner ||
+            ownerName.includes(assignedFilters.owner.trim().toLowerCase())) &&
+          (!assignedFilters.contact ||
+            contact.includes(assignedFilters.contact.trim().toLowerCase()))
+        );
+      })
+    : baseForTab;
 
   // Collect all extraData keys across current filtered leads so we can show all imported headers
   const extraColumns = Array.from(
@@ -334,6 +363,66 @@ export function LeadListTable() {
                   </>
                 )}
               </tr>
+              {showAssignedColumnFilters && (
+                <tr className="bg-slate-50/80 text-[11px] dark:bg-slate-900/80">
+                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                    <input
+                      value={assignedFilters.name}
+                      onChange={(e) =>
+                        setAssignedFilters((f) => ({ ...f, name: e.target.value }))
+                      }
+                      placeholder="Search name"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                    />
+                  </th>
+                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                    <input
+                      value={assignedFilters.company}
+                      onChange={(e) =>
+                        setAssignedFilters((f) => ({ ...f, company: e.target.value }))
+                      }
+                      placeholder="Search company"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                    />
+                  </th>
+                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                    <input
+                      value={assignedFilters.status}
+                      onChange={(e) =>
+                        setAssignedFilters((f) => ({ ...f, status: e.target.value }))
+                      }
+                      placeholder="Status"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                    />
+                  </th>
+                  <th />
+                  <th />
+                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                    <input
+                      value={assignedFilters.owner}
+                      onChange={(e) =>
+                        setAssignedFilters((f) => ({ ...f, owner: e.target.value }))
+                      }
+                      placeholder="Owner"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                    />
+                  </th>
+                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                    <input
+                      value={assignedFilters.contact}
+                      onChange={(e) =>
+                        setAssignedFilters((f) => ({ ...f, contact: e.target.value }))
+                      }
+                      placeholder="Email / phone"
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                    />
+                  </th>
+                  {extraColumns.map((col) => (
+                    <th key={col} />
+                  ))}
+                  {canBulkAssign && <th />}
+                </tr>
+              )}
             </thead>
             <tbody className="bg-white dark:bg-slate-900">
               {filtered.map((lead, idx) => (
