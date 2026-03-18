@@ -123,13 +123,13 @@ export function Topbar({ onMenuClick }) {
           className="flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:bg-slate-800/60"
           aria-label="Go to dashboard"
         >
-          <div className="relative flex h-9 shrink-0 items-center sm:h-10">
+          <div className="relative flex h-10 shrink-0 items-center sm:h-11">
             <Image
               src="/ClassifyIQLogo.png"
               alt="IQLead"
-              width={240}
-              height={64}
-              className="h-8 w-auto object-contain sm:h-9 dark:brightness-0 dark:invert"
+              width={280}
+              height={80}
+              className="h-9 w-auto object-contain sm:h-10 dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -137,9 +137,9 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
-      <nav className="hidden min-w-0 flex-1 items-center py-0.5 text-xs font-medium text-slate-600 lg:flex dark:text-slate-200">
+      <nav className="hidden min-w-0 flex-1 items-center justify-center py-0.5 text-xs font-medium text-slate-600 lg:flex dark:text-slate-200">
         <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex flex-nowrap items-center justify-start gap-1 px-1">
+          <div className="mx-auto flex w-max flex-nowrap items-center justify-center gap-2 px-1">
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
@@ -149,7 +149,7 @@ export function Topbar({ onMenuClick }) {
               key={item.href}
               href={item.href}
               className={
-                "shrink-0 rounded-full px-2.5 py-1.5 transition sm:px-3 " +
+                "shrink-0 rounded-full px-3 py-1.5 transition sm:px-3.5 " +
                 (active
                   ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
                   : "hover:bg-slate-100 dark:hover:bg-slate-800")
