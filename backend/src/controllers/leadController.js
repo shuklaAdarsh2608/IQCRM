@@ -78,7 +78,6 @@ export async function listLeads(req, res, next) {
       from,
       to
     } = req.query;
-    const offset = (Number(page) - 1) * Number(limit);
     const where = {};
     if (status) where.status = status;
     // Only admin can see all leads; others only see leads assigned to them (My leads)
@@ -131,14 +130,23 @@ export async function listLeads(req, res, next) {
       }
     }
 
-    const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 100);
+    // When searching, ignore client limit and return a large single page
+    // so admin/super admin do not need to page through results.
+    const requestedLimit = Number(limit) || 1;
+    const rawLimit = searchTerm.length > 0 ? 1000 : requestedLimit;
+    const safeLimit = Math.min(Math.max(rawLimit, 1), searchTerm.length > 0 ? 1000 : 100);
+    const offset = searchTerm.length > 0 ? 0 : (Number(page) - 1) * safeLimit;
     const { count, rows } = await Lead.findAndCountAll({
       where,
       limit: safeLimit,
       offset,
-      order: [["createdAt", "DESC"]],
+      // Recently updated / assigned leads first, then newest created
+      order: [
+        ["updatedAt", "DESC"],
+        ["createdAt", "DESC"]
+      ],
       include: [
-        { model: User, as: "owner", attributes: ["id", "name"] },
+        { model: User, as: "owner", attributes: ["id", "name", "role"] },
         { model: User, as: "creator", attributes: ["id", "name"] }
       ]
     });
@@ -548,9 +556,17 @@ export async function listLeadRemarks(req, res, next) {
     const leadId = req.params.id;
 
     const where = { leadId };
-    // If a Sales Executive is viewing and this lead has been reassigned,
-    // only show remarks from the time they became owner onward.
-    if (req.user.role === "USER") {
+    // When a lead is reassigned, the new owner should not see old remarks by default.
+    // Apply this rule only when the viewer is the CURRENT owner and is not an admin role.
+    const lead = await Lead.findByPk(leadId, { attributes: ["id", "ownerId"] });
+    if (!lead) {
+      const error = new Error("Lead not found");
+      error.status = 404;
+      throw error;
+    }
+    const isAdminViewer = ADMIN_ROLES.includes(req.user.role);
+    const isCurrentOwnerViewing = lead.ownerId != null && Number(lead.ownerId) === Number(req.user.id);
+    if (!isAdminViewer && isCurrentOwnerViewing) {
       const lastAssignment = await LeadAssignment.findOne({
         where: { leadId, toUserId: req.user.id },
         order: [["assigned_at", "DESC"]]
@@ -613,7 +629,7 @@ export async function createLead(req, res, next) {
       email,
       phone,
       company,
-      status = "NEW",
+      status = "FRESH",
       sourceId,
       ownerId,
       valueCurrency = "INR",
@@ -641,7 +657,7 @@ export async function createLead(req, res, next) {
       email: email?.trim() || null,
       phone: phone?.trim() || null,
       company: company?.trim() || null,
-      status: LEAD_STATUSES.includes(status) ? status : "NEW",
+      status: LEAD_STATUSES.includes(status) ? status : "FRESH",
       sourceId: sourceId || null,
       ownerId: owner.id,
       valueCurrency: valueCurrency || "INR",
@@ -783,10 +799,10 @@ export async function assignLead(req, res, next) {
     }
     const oldOwner = fromUserId ? await User.findByPk(fromUserId, { attributes: ["name"] }) : null;
 
-    // When a lead is reassigned, treat it as fresh: reset status to NEW
+    // When a lead is reassigned, treat it as fresh: reset status to FRESH
     const oldStatus = lead.status;
     lead.ownerId = toUser.id;
-    lead.status = "NEW";
+    lead.status = "FRESH";
     lead.updatedBy = req.user.id;
     await lead.save();
     await LeadAssignment.create({
@@ -796,8 +812,8 @@ export async function assignLead(req, res, next) {
       assignedBy: req.user.id
     });
     await logLeadAudit(lead.id, req.user.id, "ownerId", oldOwner?.name ?? "—", toUser.name);
-    if (oldStatus !== "NEW") {
-      await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "NEW");
+    if (oldStatus !== "FRESH") {
+      await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "FRESH");
     }
     const updated = await Lead.findByPk(lead.id, {
       include: [{ model: User, as: "owner", attributes: ["id", "name"] }]
@@ -838,7 +854,7 @@ export async function bulkAssignLeads(req, res, next) {
         const fromUserId = lead.ownerId;
         const oldStatus = lead.status;
         lead.ownerId = toUser.id;
-        lead.status = "NEW";
+        lead.status = "FRESH";
         lead.updatedBy = req.user.id;
         await lead.save();
         await LeadAssignment.create({
@@ -847,8 +863,8 @@ export async function bulkAssignLeads(req, res, next) {
           toUserId: toUser.id,
           assignedBy: req.user.id
         });
-        if (oldStatus !== "NEW") {
-          await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "NEW");
+        if (oldStatus !== "FRESH") {
+          await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "FRESH");
         }
         results.assigned++;
       } catch (e) {
@@ -1021,7 +1037,7 @@ export async function importLeads(req, res, next) {
         (row.comment ?? row["Comment"] ?? row["COMMENT"] ?? "").toString().trim();
       const status = statusVal && LEAD_STATUSES.includes(statusVal.toUpperCase())
         ? statusVal.toUpperCase()
-        : (statusVal.toLowerCase() === "fresh" ? "NEW" : "NEW");
+        : (statusVal.toLowerCase() === "fresh" ? "FRESH" : "FRESH");
       // Import all rows; use placeholder for missing first name so admin can edit or delete later
       const firstNameVal = (first_name && first_name.trim()) ? first_name.trim() : "—";
       // Build extra_data from any unmapped headers so admin can see custom columns later

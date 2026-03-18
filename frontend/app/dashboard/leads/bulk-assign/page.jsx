@@ -470,7 +470,9 @@ export default function BulkAssignLeadsPage() {
                       <td className="bg-slate-50/50 px-4 py-3">
                         <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm">
                           <User className="h-3.5 w-3.5 text-slate-400" />
-                          {lead.owner?.name || "—"}
+                          {lead.owner && ADMIN_ROLES.includes(lead.owner.role || "")
+                            ? "—"
+                            : (lead.owner?.name || "—")}
                         </span>
                       </td>
                     </tr>

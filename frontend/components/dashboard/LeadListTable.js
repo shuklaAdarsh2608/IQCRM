@@ -152,7 +152,13 @@ export function LeadListTable() {
   // Extra client-side filter for admin views (All leads / Assigned leads)
   const baseForTab =
     effectiveTab === TAB_ASSIGNED
-      ? leads.filter((l) => l.ownerId != null || (l.owner && l.owner.id != null))
+      ? leads.filter((l) => {
+          const hasOwner = l.ownerId != null || (l.owner && l.owner.id != null);
+          if (!hasOwner) return false;
+          // "Assigned leads" should mean assigned to working roles (not ADMIN/SUPER_ADMIN pool)
+          const ownerRole = l.owner?.role || "";
+          return ownerRole ? !ADMIN_ROLES.includes(ownerRole) : true;
+        })
       : leads;
 
   const showAssignedColumnFilters = isAdmin && !isLimitedView && effectiveTab !== TAB_MY_LEADS;
@@ -279,7 +285,7 @@ export function LeadListTable() {
       return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300";
     if (s === "LOST" || s === "JUNK")
       return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300";
-    if (s === "NEW")
+    if (s === "FRESH")
       return "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-100";
     if (["CONTACTED", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "RESCHEDULED"].includes(s))
       return "bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200";
@@ -457,16 +463,7 @@ export function LeadListTable() {
                       Name
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Designation
-                    </th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Company
-                    </th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Number
-                    </th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Mail ID
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Status
@@ -475,7 +472,13 @@ export function LeadListTable() {
                       Rating
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Comment
+                      Owner
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Contact
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Remarks
                     </th>
                   </>
                 ) : (
@@ -583,6 +586,11 @@ export function LeadListTable() {
                   !isLimitedView && isWon
                     ? "won-row border-l-4 border-amber-400 dark:border-emerald-400"
                     : "";
+                const ownerNameAdminHidden =
+                  lead.owner && ADMIN_ROLES.includes(lead.owner.role || "");
+                const ownerDisplay = ownerNameAdminHidden
+                  ? "—"
+                  : (lead.owner?.name || "—");
                 return (
                   <tr
                     key={lead.id}
@@ -595,16 +603,7 @@ export function LeadListTable() {
                         {(lead.firstName || "") + (lead.lastName ? ` ${lead.lastName}` : "") || "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                        {lead.title || "—"}
-                      </td>
-                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.company || "—"}
-                      </td>
-                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600">
-                        {lead.phone || "—"}
-                      </td>
-                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || ""}>
-                        {lead.email || "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadgeClass(lead.status)}`}>
@@ -613,6 +612,12 @@ export function LeadListTable() {
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.rating != null ? `${Number(lead.rating)} ★` : "—"}
+                      </td>
+                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                        {ownerDisplay}
+                      </td>
+                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || lead.phone || ""}>
+                        {lead.email || lead.phone || "—"}
                       </td>
                       <td className="max-w-[200px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.latestRemark || ""}>
                         {lead.latestRemark || "—"}
@@ -640,7 +645,7 @@ export function LeadListTable() {
                           : "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                        {lead.owner?.name || "—"}
+                        {ownerDisplay}
                       </td>
                       <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || lead.phone || ""}>
                         {lead.email || lead.phone || "—"}
