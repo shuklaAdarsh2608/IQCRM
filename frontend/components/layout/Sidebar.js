@@ -88,7 +88,7 @@ export function Sidebar({ open, onClose }) {
                 alt="IQLead"
                 width={260}
                 height={72}
-                className="h-10 w-full object-contain dark:brightness-0 dark:invert"
+                className="h-24 w-auto object-contain dark:brightness-0 dark:invert"
                 priority
               />
             </div>

@@ -129,6 +129,28 @@ export function Topbar({ onMenuClick, sidebarOpen = false }) {
     }
   };
 
+  const markNotificationRead = async (id) => {
+    if (!id) return;
+    // Optimistic update: keep item, just mark read and reduce badge count
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, readAt: n.readAt || new Date().toISOString() } : n))
+    );
+    try {
+      await api.post("/notifications/mark-read", { id });
+    } catch {
+      // If it fails, reload so UI matches server
+      loadNotifications();
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.readAt).length;
+
+  // Fetch once so bell badge is accurate even before opening popover
+  useEffect(() => {
+    loadNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("iqlead_token");
@@ -317,7 +339,14 @@ export function Topbar({ onMenuClick, sidebarOpen = false }) {
             }}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm dark:bg-slate-800"
           >
-            <Bell className="h-4 w-4 text-slate-500 dark:text-slate-200" />
+            <span className="relative">
+              <Bell className="h-4 w-4 text-slate-500 dark:text-slate-200" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </span>
           </button>
           {notifOpen && (
             <div className="absolute right-0 z-40 mt-2 w-[min(18rem,calc(100vw-2rem))] max-h-[70vh] overflow-y-auto rounded-2xl bg-white/95 p-3 text-xs text-slate-700 shadow-lg dark:bg-slate-900/95 dark:text-slate-100">
@@ -333,11 +362,28 @@ export function Topbar({ onMenuClick, sidebarOpen = false }) {
                   {notifications.map((n) => (
                     <div
                       key={n.id}
-                      className="rounded-xl bg-slate-50 px-3 py-2 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                      className={
+                        "rounded-xl bg-slate-50 px-3 py-2 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 " +
+                        (!n.readAt ? "" : "opacity-70")
+                      }
                     >
-                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-50">
-                        {n.title}
-                      </p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-50">
+                          {n.title}
+                        </p>
+                        {!n.readAt && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markNotificationRead(n.id);
+                            }}
+                            className="shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                          >
+                            Mark as read
+                          </button>
+                        )}
+                      </div>
                       <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-300">
                         {n.message}
                       </p>

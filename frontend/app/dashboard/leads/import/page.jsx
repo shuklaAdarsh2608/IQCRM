@@ -66,7 +66,16 @@ export default function ImportLeadsPage() {
       if (h) next.company = h;
     }
     if (!next.number) {
-      const h = findHeader(["phone number", "phone", "mobile", "contact number"]);
+      const h = findHeader([
+        "phone number",
+        "phone",
+        "mobile",
+        "contact number",
+        "contact",
+        "phone no",
+        "phone no.",
+        "phone_no"
+      ]);
       if (h) next.number = h;
     }
     if (!next.mail_id) {

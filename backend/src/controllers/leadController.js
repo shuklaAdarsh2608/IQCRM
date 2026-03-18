@@ -1082,8 +1082,16 @@ export async function importLeads(req, res, next) {
         (row.title ?? row.designation ?? row["Title"] ?? row["Designation"] ?? "").toString().trim();
       const company = getRowVal(row, columnMap, "company", ["company", "Company"]) ||
         (row.company ?? row["Company"] ?? "").toString().trim();
-      const phone = getRowVal(row, columnMap, "number", ["phone", "number", "Phone", "NUMBER"]) ||
-        (row.phone ?? row.number ?? row["Phone"] ?? row["NUMBER"] ?? "").toString().trim();
+      const phone = getRowVal(row, columnMap, "number", [
+        "phone",
+        "number",
+        "Phone",
+        "NUMBER",
+        "contact",
+        "Contact",
+        "CONTACT"
+      ]) ||
+        (row.phone ?? row.number ?? row.contact ?? row.Contact ?? row.CONTACT ?? row["Phone"] ?? row["NUMBER"] ?? row["CONTACT"] ?? "").toString().trim();
       const email = getRowVal(row, columnMap, "mail_id", ["email", "mail_id", "Email", "MAIL ID"]) ||
         (row.email ?? row.mail_id ?? row["Email"] ?? row["MAIL ID"] ?? "").toString().trim();
       const statusVal = getRowVal(row, columnMap, "status", ["status", "Status", "Fresh"]) ||
@@ -1114,6 +1122,7 @@ export async function importLeads(req, res, next) {
           "phone",
           "phone number",
           "number",
+          "contact",
           "title",
           "job title",
           "designation",
