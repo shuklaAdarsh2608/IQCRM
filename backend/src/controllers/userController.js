@@ -9,6 +9,8 @@ import {
   changePassword,
   deleteUserById
 } from "../services/userService.js";
+import { encryptSmtpPassword } from "../utils/smtpSecrets.js";
+import { User } from "../models/User.js";
 
 export async function getUsersOptions(req, res, next) {
   try {
@@ -24,8 +26,64 @@ export async function getUsers(req, res, next) {
     const users = await listUsers();
     res.json({
       success: true,
-      data: users
+      data: users.map((u) => {
+        const plain = u.get ? u.get({ plain: true }) : u;
+        return {
+          id: plain.id,
+          name: plain.name,
+          email: plain.email,
+          role: plain.role,
+          isActive: plain.isActive,
+          managerId: plain.managerId,
+          createdAt: plain.createdAt,
+          smtpConfigured: !!plain.smtpPassEnc,
+          smtpUser: plain.smtpUser || null
+        };
+      })
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function setUserSmtpController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const smtpPassword = String(req.body?.smtpPassword || "");
+    const smtpUser = String(req.body?.smtpUser || "").trim();
+    if (!smtpPassword.trim()) {
+      return res.status(400).json({ success: false, message: "smtpPassword is required" });
+    }
+    const user = await User.findByPk(Number(id));
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const enc = encryptSmtpPassword(smtpPassword);
+    user.smtpUser = smtpUser || user.email;
+    user.smtpPassEnc = enc.encB64;
+    user.smtpPassIv = enc.ivB64;
+    user.smtpPassTag = enc.tagB64;
+    await user.save({ silent: true });
+    res.json({ success: true, data: { id: user.id, smtpConfigured: true } });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function setMySmtpController(req, res, next) {
+  try {
+    const smtpPassword = String(req.body?.smtpPassword || "");
+    const smtpUser = String(req.body?.smtpUser || "").trim();
+    if (!smtpPassword.trim()) {
+      return res.status(400).json({ success: false, message: "smtpPassword is required" });
+    }
+    const user = await User.findByPk(Number(req.user.id));
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const enc = encryptSmtpPassword(smtpPassword);
+    user.smtpUser = smtpUser || user.email;
+    user.smtpPassEnc = enc.encB64;
+    user.smtpPassIv = enc.ivB64;
+    user.smtpPassTag = enc.tagB64;
+    await user.save({ silent: true });
+    res.json({ success: true, data: { id: user.id, smtpConfigured: true } });
   } catch (err) {
     next(err);
   }

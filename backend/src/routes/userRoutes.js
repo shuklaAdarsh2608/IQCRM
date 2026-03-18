@@ -9,7 +9,9 @@ import {
   getMe,
   updateMe,
   changePasswordMe,
-  deleteUserController
+  deleteUserController,
+  setUserSmtpController,
+  setMySmtpController
 } from "../controllers/userController.js";
 import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
@@ -37,6 +39,14 @@ router.post(
     body("newPassword").isLength({ min: 6 }).withMessage("New password must be at least 6 characters")
   ],
   changePasswordMe
+);
+
+// Any authenticated user can set their own SMTP (Option 1)
+router.post(
+  "/me/smtp",
+  requireAuth,
+  [body("smtpPassword").notEmpty().withMessage("smtpPassword is required")],
+  setMySmtpController
 );
 
 // All user admin routes require SUPER_ADMIN or ADMIN
@@ -70,6 +80,12 @@ router.post(
 );
 
 router.post("/:id/force-logout", forceLogoutController);
+
+router.post(
+  "/:id/smtp",
+  [body("smtpPassword").notEmpty().withMessage("smtpPassword is required")],
+  setUserSmtpController
+);
 
 // Only SUPER_ADMIN can delete users
 router.delete("/:id", requireRole(["SUPER_ADMIN"]), deleteUserController);

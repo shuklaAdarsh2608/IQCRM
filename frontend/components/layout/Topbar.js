@@ -342,7 +342,7 @@ export function Topbar({ onMenuClick, sidebarOpen = false }) {
             <span className="relative">
               <Bell className="h-4 w-4 text-slate-500 dark:text-slate-200" />
               {unreadCount > 0 && (
-                <span className="absolute -right-2 -top-2 inline-flex h-2 min-w-2 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
+                <span className="absolute -right-2 -top-2 inline-flex h-3 min-w-1 items-center justify-center rounded-full bg-red-600 px-1 text-[8px] font-semibold leading-none text-white">
                   {unreadCount > 9? "9+" : unreadCount}
                 </span>
               )}

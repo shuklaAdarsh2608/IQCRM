@@ -30,7 +30,9 @@ export async function requireAuth(req, res, next) {
 
     req.user = {
       id: user.id,
-      role: user.role
+      role: user.role,
+      email: user.email,
+      name: user.name
     };
 
     next();

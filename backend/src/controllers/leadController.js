@@ -173,6 +173,7 @@ export async function listLeads(req, res, next) {
     // Attach latest remark per lead for list (e.g. Comment column for limited view)
     const leadIds = rows.map((r) => r.id);
     let latestRemarkByLeadId = {};
+    let lastAssignedAtByLeadId = {};
     if (leadIds.length > 0) {
       const { sequelize } = LeadRemark;
       const remarks = await LeadRemark.findAll({
@@ -185,10 +186,24 @@ export async function listLeads(req, res, next) {
           latestRemarkByLeadId[r.leadId] = r.remark;
         }
       });
+
+      // Attach most recent assignment timestamp per lead (for "assigned today" UI)
+      const assignments = await LeadAssignment.findAll({
+        where: { leadId: { [Op.in]: leadIds } },
+        attributes: ["leadId", "assignedAt"],
+        order: [["assignedAt", "DESC"]],
+        raw: true
+      });
+      assignments.forEach((a) => {
+        if (lastAssignedAtByLeadId[a.leadId] === undefined) {
+          lastAssignedAtByLeadId[a.leadId] = a.assignedAt;
+        }
+      });
     }
     const data = rows.map((row) => {
       const plain = row.get ? row.get({ plain: true }) : row;
       plain.latestRemark = latestRemarkByLeadId[row.id] || null;
+      plain.assignedAt = lastAssignedAtByLeadId[row.id] || null;
       return plain;
     });
 

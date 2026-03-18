@@ -54,6 +54,26 @@ User.init(
       allowNull: false,
       defaultValue: 0,
       field: "token_version"
+    },
+    smtpUser: {
+      type: DataTypes.STRING(180),
+      allowNull: true,
+      field: "smtp_user"
+    },
+    smtpPassEnc: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: "smtp_pass_enc"
+    },
+    smtpPassIv: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+      field: "smtp_pass_iv"
+    },
+    smtpPassTag: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+      field: "smtp_pass_tag"
     }
   },
   {

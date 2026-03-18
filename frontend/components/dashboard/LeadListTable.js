@@ -267,6 +267,18 @@ export function LeadListTable() {
     return "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200";
   };
 
+  const isAssignedToday = (lead) => {
+    if (!lead?.assignedAt) return false;
+    const d = new Date(lead.assignedAt);
+    if (Number.isNaN(d.getTime())) return false;
+    const now = new Date();
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate()
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -491,12 +503,16 @@ export function LeadListTable() {
             <tbody className="bg-white dark:bg-slate-900">
               {filtered.map((lead, idx) => {
                 const isWon = (lead.status || "").toUpperCase() === "WON";
+                const assignedToday = isAssignedToday(lead);
                 const baseRowClass = idx % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/40" : "";
                 const limitedHighlight = isLimitedView
                   ? "bg-amber-50/70 border-l-4 border-amber-400 dark:bg-slate-800/80 dark:border-emerald-400"
                   : "";
                 const wonHighlight = isWon
                   ? "won-row border-l-4 border-amber-400 dark:border-emerald-400"
+                  : "";
+                const todayAssignedHighlight = assignedToday
+                  ? "border-l-4 border-emerald-500"
                   : "";
                 const ownerNameAdminHidden =
                   lead.owner && ADMIN_ROLES.includes(lead.owner.role || "");
@@ -506,7 +522,7 @@ export function LeadListTable() {
                 return (
                   <tr
                     key={lead.id}
-                    className={`cursor-pointer transition hover:bg-orange-50/50 dark:hover:bg-slate-800/60 ${baseRowClass} ${limitedHighlight} ${wonHighlight}`}
+                    className={`cursor-pointer transition hover:bg-orange-50/50 dark:hover:bg-slate-800/60 ${baseRowClass} ${todayAssignedHighlight} ${limitedHighlight} ${wonHighlight}`}
                     onClick={() => handleRowClick(lead.id)}
                   >
                   {isLimitedView ? (

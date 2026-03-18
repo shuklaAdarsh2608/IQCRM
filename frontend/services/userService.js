@@ -20,3 +20,11 @@ export async function deleteUser(userId) {
   return api.delete(`/users/${userId}`);
 }
 
+export async function setUserSmtp(userId, payload) {
+  return api.post(`/users/${userId}/smtp`, payload);
+}
+
+export async function setMySmtp(payload) {
+  return api.post(`/users/me/smtp`, payload);
+}
+

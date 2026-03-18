@@ -3,21 +3,21 @@ import nodemailer from "nodemailer";
 import { body, validationResult } from "express-validator";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { EmailLog } from "../models/EmailLog.js";
+import { User } from "../models/User.js";
+import { decryptSmtpPassword } from "../utils/smtpSecrets.js";
 
 const router = express.Router();
 router.use(requireAuth);
 
-function getMailer() {
+function getMailer(authUser, authPass) {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  if (!host || !user || !pass) return null;
+  if (!host || !authUser || !authPass) return null;
   return nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
-    auth: { user, pass }
+    auth: { user: authUser, pass: authPass }
   });
 }
 
@@ -39,8 +39,18 @@ router.post(
       const subject = String(req.body?.subject || "").trim();
       const text = String(req.body?.body || "").trim();
 
-      const userEmail = req.user?.email || process.env.SMTP_USER;
+      const userEmail = req.user?.email || "";
       const userName = req.user?.name || "IQLead";
+
+      const dbUser = await User.findByPk(req.user.id, {
+        attributes: ["id", "email", "name", "smtpUser", "smtpPassEnc", "smtpPassIv", "smtpPassTag"]
+      });
+      const authUser = dbUser?.smtpUser || dbUser?.email || "";
+      const authPass = decryptSmtpPassword({
+        encB64: dbUser?.smtpPassEnc,
+        ivB64: dbUser?.smtpPassIv,
+        tagB64: dbUser?.smtpPassTag
+      });
 
       const log = await EmailLog.create({
         userId: req.user.id,
@@ -50,18 +60,19 @@ router.post(
         status: "QUEUED"
       });
 
-      const mailer = getMailer();
+      const mailer = getMailer(authUser, authPass);
       if (!mailer) {
         await log.update({ status: "FAILED" }, { silent: true });
-        return res.status(500).json({ success: false, message: "SMTP is not configured" });
+        return res.status(400).json({
+          success: false,
+          message: "SMTP is not configured for this user. Set your mailbox password in Users → SMTP."
+        });
       }
 
       try {
         const info = await mailer.sendMail({
-          // Hostinger: authenticated user comes from SMTP_USER, but we set From to the logged-in user (same domain).
-          // If provider blocks this, fallback is to keep From as SMTP_FROM and set replyTo.
-          from: `${userName} <${userEmail}>`,
-          replyTo: userEmail,
+          from: `${userName} <${authUser}>`,
+          replyTo: userEmail || authUser,
           to,
           subject,
           text

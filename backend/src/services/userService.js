@@ -3,7 +3,19 @@ import { User } from "../models/User.js";
 
 export async function listUsers() {
   return User.findAll({
-    attributes: ["id", "name", "email", "role", "isActive", "managerId", "createdAt"],
+    attributes: [
+      "id",
+      "name",
+      "email",
+      "role",
+      "isActive",
+      "managerId",
+      "createdAt",
+      "smtpUser",
+      "smtpPassEnc",
+      "smtpPassIv",
+      "smtpPassTag"
+    ],
     order: [["createdAt", "DESC"]]
   });
 }
@@ -142,5 +154,34 @@ export async function deleteUserById(requestingUser, userId) {
   }
   await user.destroy();
   return { id: userId };
+}
+
+export async function setSmtpCredentials(userId, { smtpUser, smtpPassword }) {
+  const user = await User.findByPk(userId);
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+  user.smtpUser = smtpUser || user.email;
+  if (!smtpPassword || String(smtpPassword).trim().length < 4) {
+    const error = new Error("SMTP password is required");
+    error.status = 400;
+    throw error;
+  }
+  // Encryption happens in controller to avoid circular deps in services
+  return user;
+}
+
+export async function getUserForSmtp(userId) {
+  const user = await User.findByPk(userId, {
+    attributes: ["id", "name", "email", "smtpUser", "smtpPassEnc", "smtpPassIv", "smtpPassTag", "isActive"]
+  });
+  if (!user || !user.isActive) {
+    const error = new Error("User not found or inactive");
+    error.status = 404;
+    throw error;
+  }
+  return user;
 }
 
