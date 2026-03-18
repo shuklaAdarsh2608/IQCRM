@@ -13,13 +13,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showSessionModal, setShowSessionModal] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const performLogin = async ({ forceTerminate = false } = {}) => {
     setError("");
     setLoading(true);
     try {
-      const res = await loginRequest({ email, password });
+      const res = await loginRequest({ email, password, forceTerminate });
       if (typeof window !== "undefined") {
         const payload = res?.data?.data || res?.data || {};
         if (payload.token && payload.user) {
@@ -32,12 +32,34 @@ export default function LoginPage() {
       }
       router.push("/dashboard");
     } catch (err) {
+      const code = err?.response?.data?.code;
       const message =
-        err?.response?.data?.message || "Unable to login. Please check credentials.";
-      setError(message);
+        err?.response?.data?.message ||
+        "Unable to login. Please check credentials.";
+
+      if (code === "SESSION_ALREADY_ACTIVE") {
+        setShowSessionModal(true);
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setShowSessionModal(false);
+    await performLogin({ forceTerminate: false });
+  };
+
+  const handleTerminateAndLogin = async () => {
+    setShowSessionModal(false);
+    await performLogin({ forceTerminate: true });
+  };
+
+  const handleCancelModal = () => {
+    setShowSessionModal(false);
   };
 
   return (
@@ -106,6 +128,35 @@ export default function LoginPage() {
           </form>
         </motion.div>
       </div>
+      {showSessionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-4 text-sm shadow-xl">
+            <h2 className="mb-2 text-base font-semibold text-slate-900">
+              Session already active
+            </h2>
+            <p className="mb-4 text-xs text-slate-600">
+              This account is logged in on another device. If you continue, the previous
+              session will be terminated.
+            </p>
+            <div className="flex justify-end gap-2 text-xs">
+              <button
+                type="button"
+                onClick={handleCancelModal}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleTerminateAndLogin}
+                className="rounded-lg bg-orange-500 px-3 py-1.5 font-medium text-white hover:bg-orange-600"
+              >
+                Terminate &amp; Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
