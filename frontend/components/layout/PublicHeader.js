@@ -10,13 +10,14 @@ export function PublicHeader() {
       <header className="mx-auto flex max-w-[1600px] items-center justify-between rounded-xl bg-white/80 px-4 py-2.5 text-sm text-slate-700 shadow-sm backdrop-blur sm:px-6 dark:bg-slate-900/90 dark:text-slate-100">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative flex h-10 shrink-0 items-center sm:h-11">
+            {/* Keep header height the same; scale logo visually (no layout jump) */}
+            <div className="relative flex h-10 shrink-0 items-center overflow-visible sm:h-11">
               <Image
                 src="/ClassifyIQLogo.png"
                 alt="IQLead"
-                width={140}
-                height={40}
-                className="h-8 w-auto object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-9 dark:brightness-0 dark:invert"
+                width={360}
+                height={120}
+                className="h-10 w-auto origin-left scale-[1.75] object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-11 sm:scale-[2.85] dark:brightness-0 dark:invert"
                 priority
               />
             </div>

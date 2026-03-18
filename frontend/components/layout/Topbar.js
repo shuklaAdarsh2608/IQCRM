@@ -112,13 +112,13 @@ export function Topbar({ onMenuClick }) {
           </button>
         )}
         <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3">
-          <div className="relative flex h-10 shrink-0 items-center sm:h-11">
+          <div className="relative flex h-12 shrink-0 items-center overflow-visible sm:h-14">
             <Image
               src="/ClassifyIQLogo.png"
               alt="IQLead"
-              width={140}
-              height={40}
-              className="h-8 w-auto object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-9 dark:brightness-0 dark:invert"
+              width={360}
+              height={120}
+              className="h-10 w-auto origin-left scale-[1.75] object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-12 sm:scale-[2.85] dark:brightness-0 dark:invert"
               priority
             />
           </div>
