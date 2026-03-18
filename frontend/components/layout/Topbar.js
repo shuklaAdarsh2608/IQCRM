@@ -113,13 +113,13 @@ export function Topbar({ onMenuClick }) {
         )}
         <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3">
           {/* Reserve real width so tabs don't overlap */}
-          <div className="relative flex h-12 w-[110px] shrink-0 items-center sm:h-14 sm:w-[150px]">
+          <div className="relative flex h-12 shrink-0 items-center sm:h-14">
             <Image
               src="/ClassifyIQLogo.png"
               alt="IQLead"
-              width={220}
-              height={60}
-              className="h-9 w-full object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-11 dark:brightness-0 dark:invert"
+              width={260}
+              height={72}
+              className="h-10 w-auto object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-12 dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -127,9 +127,9 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
-      <nav className="hidden min-w-0 flex-1 items-center justify-center py-0.5 text-xs font-medium text-slate-600 lg:flex dark:text-slate-200">
+      <nav className="hidden min-w-0 flex-1 items-center py-0.5 text-xs font-medium text-slate-600 lg:flex dark:text-slate-200">
         <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex flex-nowrap items-center justify-center gap-2 px-1">
+          <div className="flex flex-nowrap items-center justify-start gap-2 px-1">
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
