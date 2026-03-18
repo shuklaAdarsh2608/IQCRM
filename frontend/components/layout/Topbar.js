@@ -113,13 +113,13 @@ export function Topbar({ onMenuClick }) {
         )}
         <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3">
           {/* Reserve real width so tabs don't overlap */}
-          <div className="relative flex h-12 w-[150px] shrink-0 items-center sm:h-14 sm:w-[400px]">
+          <div className="relative flex h-12 w-[110px] shrink-0 items-center sm:h-14 sm:w-[150px]">
             <Image
               src="/ClassifyIQLogo.png"
               alt="IQLead"
-              width={260}
-              height={72}
-              className="h-10 w-100 object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-12 dark:brightness-0 dark:invert"
+              width={220}
+              height={60}
+              className="h-9 w-full object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-11 dark:brightness-0 dark:invert"
               priority
             />
           </div>
