@@ -130,11 +130,11 @@ export default function LoginPage() {
       </div>
       {showSessionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-4 text-sm shadow-xl">
-            <h2 className="mb-2 text-base font-semibold text-slate-900">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-4 text-sm shadow-xl dark:bg-slate-900 dark:text-slate-100">
+            <h2 className="mb-2 text-base font-semibold text-slate-900 dark:text-slate-50">
               Session already active
             </h2>
-            <p className="mb-4 text-xs text-slate-600">
+            <p className="mb-4 text-xs text-slate-600 dark:text-slate-300">
               This account is logged in on another device. If you continue, the previous
               session will be terminated.
             </p>
@@ -142,14 +142,14 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleCancelModal}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleTerminateAndLogin}
-                className="rounded-lg bg-orange-500 px-3 py-1.5 font-medium text-white hover:bg-orange-600"
+                className="rounded-lg bg-orange-500 px-3 py-1.5 font-medium text-white hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
               >
                 Terminate &amp; Login
               </button>
