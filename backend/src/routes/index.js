@@ -11,6 +11,7 @@ import { chatRouter } from "./chatRoutes.js";
 import { activityLogRouter } from "./activityLogRoutes.js";
 import { streakApprovalRouter } from "./streakApprovalRoutes.js";
 import { streakRouter } from "./streakRoutes.js";
+import { mailRouter } from "./mailRoutes.js";
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.use("/chats", chatRouter);
 router.use("/activity-logs", activityLogRouter);
 router.use("/streak-approvals", streakApprovalRouter);
 router.use("/streaks", streakRouter);
+router.use("/mails", mailRouter);
 
 export { router as apiRouter };
 

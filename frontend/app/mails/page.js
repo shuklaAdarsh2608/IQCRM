@@ -2,6 +2,7 @@
 
 import { DashboardShell } from "../../components/layout/DashboardShell";
 import { useEffect, useState } from "react";
+import api from "../../services/api";
 
 export default function MailsPage() {
   const [selectedId, setSelectedId] = useState(1);
@@ -12,6 +13,14 @@ export default function MailsPage() {
     subject: "",
     body: ""
   });
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast(null), 2200);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -53,14 +62,27 @@ export default function MailsPage() {
 
   const selected = mails.find((m) => m.id === selectedId) || mails[0];
 
-  const handleComposeSend = () => {
-    if (!composeForm.to?.trim()) return;
-    const subject = encodeURIComponent(composeForm.subject || "");
-    const body = encodeURIComponent(composeForm.body || "");
-    const mailto = `mailto:${composeForm.to.trim()}?subject=${subject}&body=${body}`;
-    window.location.href = mailto;
-    setComposeOpen(false);
-    setComposeForm({ to: "", subject: "", body: "" });
+  const handleComposeSend = async () => {
+    if (!composeForm.to?.trim() || sending) return;
+    setSending(true);
+    try {
+      const res = await api.post("/mails/send", {
+        to: composeForm.to.trim(),
+        subject: composeForm.subject || "",
+        body: composeForm.body || ""
+      });
+      if (res.data?.success) {
+        showToast("success", "Mail sent successfully");
+        setComposeOpen(false);
+        setComposeForm({ to: "", subject: "", body: "" });
+      } else {
+        showToast("error", "Failed to send mail");
+      }
+    } catch (e) {
+      showToast("error", e?.response?.data?.message || "Failed to send mail");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -68,6 +90,20 @@ export default function MailsPage() {
       title="Mails"
       subtitle="Email inbox and outbound campaigns connected to leads."
     >
+      {toast?.message && (
+        <div className="fixed left-1/2 top-4 z-[9999] w-[min(92vw,28rem)] -translate-x-1/2">
+          <div
+            className={
+              "rounded-2xl px-4 py-3 text-sm shadow-lg ring-1 backdrop-blur " +
+              (toast.type === "success"
+                ? "bg-emerald-600/95 text-white ring-emerald-300/40"
+                : "bg-red-600/95 text-white ring-red-300/40")
+            }
+          >
+            {toast.message}
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-3 min-w-0 sm:gap-4 md:grid-cols-[1.4fr,2fr]">
         <div className="rounded-2xl bg-white/80 p-3 text-xs text-slate-700 shadow-sm dark:bg-slate-900/85 dark:text-slate-100 dark:border dark:border-slate-800">
           <div className="mb-3 flex items-center justify-between">
@@ -222,10 +258,10 @@ export default function MailsPage() {
               <button
                 type="button"
                 onClick={handleComposeSend}
-                disabled={!composeForm.to?.trim()}
+                disabled={!composeForm.to?.trim() || sending}
                 className="rounded-xl bg-orange-500 px-4 py-2 text-xs font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Send
+                {sending ? "Sending..." : "Send"}
               </button>
             </div>
           </div>
