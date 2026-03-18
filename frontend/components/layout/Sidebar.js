@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -73,10 +74,18 @@ export function Sidebar({ open, onClose }) {
     <>
       <div className="mb-4 flex items-center justify-between gap-2 sm:mb-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold text-white">
-            IQ
-          </div>
-          <p className="truncate text-sm font-semibold text-slate-900">IQLead</p>
+          <Link href="/dashboard" onClick={onClose} className="flex items-center gap-2">
+            <div className="relative flex h-12 w-[160px] items-center">
+              <Image
+                src="/ClassifyIQLogo.png"
+                alt="IQLead"
+                width={260}
+                height={72}
+                className="h-10 w-full object-contain dark:brightness-0 dark:invert"
+                priority
+              />
+            </div>
+          </Link>
         </div>
         <button
           type="button"
