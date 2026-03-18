@@ -27,6 +27,13 @@ export default function BulkAssignLeadsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalLeads, setTotalLeads] = useState(0);
   const [showPoolOnly, setShowPoolOnly] = useState(true);
+  const [columnFilters, setColumnFilters] = useState({
+    name: "",
+    company: "",
+    status: "",
+    contact: "",
+    owner: ""
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -160,6 +167,27 @@ export default function BulkAssignLeadsPage() {
   };
 
   const selectedUserName = users.find((u) => String(u.id) === ownerId)?.name ?? "user";
+
+  const filteredLeads = leads.filter((lead) => {
+    const fullName = `${lead.firstName || ""} ${lead.lastName || ""}`.toLowerCase();
+    const contact = (lead.email || lead.phone || "").toLowerCase();
+    const ownerName = (lead.owner?.name || "").toLowerCase();
+    const company = (lead.company || "").toLowerCase();
+    const status = (lead.status || "").toLowerCase();
+
+    return (
+      (!columnFilters.name ||
+        fullName.includes(columnFilters.name.trim().toLowerCase())) &&
+      (!columnFilters.company ||
+        company.includes(columnFilters.company.trim().toLowerCase())) &&
+      (!columnFilters.status ||
+        status.includes(columnFilters.status.trim().toLowerCase())) &&
+      (!columnFilters.contact ||
+        contact.includes(columnFilters.contact.trim().toLowerCase())) &&
+      (!columnFilters.owner ||
+        ownerName.includes(columnFilters.owner.trim().toLowerCase()))
+    );
+  });
 
   if (allowed === false) return null;
   if (allowed !== true) {
@@ -366,9 +394,52 @@ export default function BulkAssignLeadsPage() {
                       </span>
                     </th>
                   </tr>
+                  <tr className="bg-slate-50/90">
+                    <th className="border-b border-slate-200 px-4 py-2" />
+                    <th className="border-b border-slate-200 px-4 py-2">
+                      <input
+                        value={columnFilters.name}
+                        onChange={(e) =>
+                          setColumnFilters((f) => ({ ...f, name: e.target.value }))
+                        }
+                        placeholder="Search name / contact"
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                      />
+                    </th>
+                    <th className="border-b border-slate-200 px-4 py-2">
+                      <input
+                        value={columnFilters.company}
+                        onChange={(e) =>
+                          setColumnFilters((f) => ({ ...f, company: e.target.value }))
+                        }
+                        placeholder="Company"
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                      />
+                    </th>
+                    <th className="border-b border-slate-200 px-4 py-2">
+                      <input
+                        value={columnFilters.status}
+                        onChange={(e) =>
+                          setColumnFilters((f) => ({ ...f, status: e.target.value }))
+                        }
+                        placeholder="Status"
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                      />
+                    </th>
+                    <th className="border-b border-slate-200 px-4 py-2">
+                      <input
+                        value={columnFilters.owner}
+                        onChange={(e) =>
+                          setColumnFilters((f) => ({ ...f, owner: e.target.value }))
+                        }
+                        placeholder="Owner"
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                      />
+                    </th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {leads.map((lead) => (
+                  {filteredLeads.map((lead) => (
                     <tr key={lead.id} className="border-b border-slate-100 hover:bg-slate-50/60">
                       <td className="px-4 py-3">
                         <input

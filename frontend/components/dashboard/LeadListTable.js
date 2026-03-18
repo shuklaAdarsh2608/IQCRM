@@ -149,13 +149,13 @@ export function LeadListTable() {
       .finally(() => setLoading(false));
   }, [effectiveTab, currentUserId, page, searchQuery, dateRange, fromDate, toDate]);
 
-  // Extra client-side filter for some tabs
+  // Extra client-side filter for admin views (All leads / Assigned leads)
   const baseForTab =
     effectiveTab === TAB_ASSIGNED
       ? leads.filter((l) => l.ownerId != null || (l.owner && l.owner.id != null))
       : leads;
 
-  const showAssignedColumnFilters = isAdmin && effectiveTab === TAB_ASSIGNED && !isLimitedView;
+  const showAssignedColumnFilters = isAdmin && !isLimitedView && effectiveTab !== TAB_MY_LEADS;
 
   const filtered = showAssignedColumnFilters
     ? baseForTab.filter((l) => {
