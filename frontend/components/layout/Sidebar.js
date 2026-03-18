@@ -20,7 +20,7 @@ import { usePathname } from "next/navigation";
 const allNavItems = [
   { label: "Dashboard", icon: LayoutGrid, href: "/dashboard" },
   { label: "Leads", icon: Users, href: "/dashboard/leads" },
-  { label: "My streak", icon: Trophy, href: "/dashboard/streaks" },
+  { label: "My streak", icon: Trophy, href: "/dashboard/streaks", roles: ["MANAGER", "TEAM_LEADER", "USER"] },
   {
     label: "Approvals",
     icon: CheckCircle2,

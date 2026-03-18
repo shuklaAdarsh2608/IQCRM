@@ -39,7 +39,8 @@ export function GoalRing({ value = 0, total = 100, label, subLabel }) {
     const bCol = Math.round(fromColor.b + (toColor.b - fromColor.b) * t);
     const activeColor = `rgb(${rCol},${gCol},${bCol})`;
 
-    const color = isActive ? activeColor : "rgba(148,163,184,0.35)";
+    // Inactive segment color tuned for both themes
+    const color = isActive ? activeColor : "rgba(148,163,184,0.28)";
 
     return { x1, y1, x2, y2, color };
   });
@@ -50,7 +51,11 @@ export function GoalRing({ value = 0, total = 100, label, subLabel }) {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col items-center justify-center py-4"
     >
-      <svg viewBox="0 0 200 140" className="h-40 w-40">
+      {/* Subtle glow behind the arc for dark mode clarity */}
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-2xl opacity-40 dark:opacity-60"
+             style={{ background: "radial-gradient(circle, rgba(249,115,22,0.35) 0%, rgba(168,85,247,0.18) 45%, rgba(2,6,23,0) 70%)" }} />
+        <svg viewBox="0 0 200 140" className="h-40 w-40">
         {segments.map((seg, idx) => (
           <line
             key={idx}
@@ -63,16 +68,17 @@ export function GoalRing({ value = 0, total = 100, label, subLabel }) {
             strokeLinecap="round"
           />
         ))}
-      </svg>
+        </svg>
+      </div>
       <div className="mt-[-3rem] flex flex-col items-center">
-        <p className="text-lg font-semibold text-slate-900">
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
           ₹{Math.round(value).toLocaleString()}
         </p>
         {label && (
-          <p className="mt-1 text-[11px] text-slate-500 text-center">{label}</p>
+          <p className="mt-1 text-[11px] text-slate-500 text-center dark:text-slate-300">{label}</p>
         )}
         {subLabel && (
-          <p className="mt-1 text-[10px] text-slate-400 text-center">{subLabel}</p>
+          <p className="mt-1 text-[10px] text-slate-400 text-center dark:text-slate-400">{subLabel}</p>
         )}
       </div>
     </motion.div>
