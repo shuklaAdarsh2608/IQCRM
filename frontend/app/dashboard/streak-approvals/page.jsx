@@ -103,7 +103,7 @@ export default function StreakApprovalsPage() {
 
   if (role && !allowed) {
     return (
-      <div className="rounded-2xl bg-white p-6 text-sm text-slate-600 shadow-sm dark:bg-slate-900 dark:text-slate-200">
+      <div className="rounded-2xl bg-white p-6 text-sm text-slate-600 shadow-sm dark:border dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-200">
         Not authorized.
       </div>
     );
@@ -121,12 +121,12 @@ export default function StreakApprovalsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search lead, company, user..."
-            className="w-full max-w-[260px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="w-full max-w-[260px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-300 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-100"
           />
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-100"
           >
             <option value="PENDING">Pending</option>
             <option value="APPROVED">Approved</option>
@@ -136,14 +136,14 @@ export default function StreakApprovalsPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
         {loading ? (
           <div className="p-10 text-center text-sm text-slate-500 dark:text-slate-300">Loading...</div>
         ) : filtered.length === 0 ? (
           <div className="p-10 text-center text-sm text-slate-500 dark:text-slate-300">No approvals.</div>
         ) : (
           <table className="min-w-[900px] w-full border-collapse text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-300">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-950/40 dark:text-slate-300">
               <tr>
                 <th className="border-b border-slate-200 px-4 py-3 text-left dark:border-slate-800">Lead</th>
                 <th className="border-b border-slate-200 px-4 py-3 text-left dark:border-slate-800">Company</th>
@@ -162,17 +162,17 @@ export default function StreakApprovalsPage() {
                 const salesUser = a.salesUser || {};
                 const left = timeLeft(a.approvalDeadlineAt);
                 return (
-                  <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50/60 dark:border-slate-800 dark:hover:bg-slate-800/40">
+                  <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50/60 dark:border-slate-800 dark:hover:bg-slate-950/30">
                     <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-50">
                       <Link className="hover:underline" href={`/dashboard/leads/${lead.id}`}>
                         {lead.firstName || "—"} {lead.lastName || ""}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-200">{lead.company || "—"}</td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-200">{salesUser.name || "—"}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{lead.company || "—"}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{salesUser.name || "—"}</td>
                     <td className="px-4 py-3 text-slate-700 dark:text-slate-100">₹ {Number(a.wonAmount || 0).toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-200">{a.wonAt ? new Date(a.wonAt).toLocaleString() : "—"}</td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-200">{a.approvalDeadlineAt ? new Date(a.approvalDeadlineAt).toLocaleString() : "—"}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{a.wonAt ? new Date(a.wonAt).toLocaleString() : "—"}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{a.approvalDeadlineAt ? new Date(a.approvalDeadlineAt).toLocaleString() : "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${toneClass[left.tone]}`}>
                         {left.label}
