@@ -47,6 +47,13 @@ const allNavItems = [
   { label: "Settings", icon: SettingsIcon, href: "/dashboard/settings" }
 ];
 
+function normalizeRole(role) {
+  if (!role) return null;
+  if (role === "Sales Executive" || role === "SALES_EXECUTIVE") return "USER";
+  if (role === "Relationship Manager" || role === "RELATIONSHIP_MANAGER") return "USER";
+  return role;
+}
+
 export function Sidebar({ open, onClose }) {
   const pathname = usePathname();
   const [role, setRole] = useState(null);
@@ -57,7 +64,7 @@ export function Sidebar({ open, onClose }) {
       const raw = window.localStorage.getItem("iqlead_user");
       if (raw) {
         const parsed = JSON.parse(raw);
-        setRole(parsed.role);
+        setRole(normalizeRole(parsed.role));
       }
     } catch {
       // ignore
