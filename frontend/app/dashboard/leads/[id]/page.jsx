@@ -512,30 +512,7 @@ export default function LeadDetailPage({ params }) {
                     placeholder="Enter amount in ₹"
                   />
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                      Won at
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={wonAt}
-                      onChange={(e) => setWonAt(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                      Expected payment by (≤72h)
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={paymentExpectedBy}
-                      onChange={(e) => setPaymentExpectedBy(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                </div>
+                {/* Won timestamps are set automatically; hide from UI */}
                 <div>
                   <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
                     Note / proof (optional)

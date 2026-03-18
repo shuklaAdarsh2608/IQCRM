@@ -191,7 +191,7 @@ export function Topbar({ onMenuClick, sidebarOpen = false }) {
               alt="IQLead"
               width={280}
               height={80}
-              className="h-11 w-auto max-w-[160px] object-contain sm:h-14 sm:max-w-none md:h-16 dark:brightness-0 dark:invert"
+              className="h-24 w-auto object-contain dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -201,7 +201,7 @@ export function Topbar({ onMenuClick, sidebarOpen = false }) {
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
       <nav
         className={
-          "hidden min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 md:flex lg:justify-center lg:text-xs dark:text-slate-200 " +
+          "hidden min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 lg:flex lg:justify-center lg:text-xs dark:text-slate-200 " +
           (sidebarOpen ? "lg:hidden" : "")
         }
       >
