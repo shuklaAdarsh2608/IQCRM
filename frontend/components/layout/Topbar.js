@@ -119,7 +119,7 @@ export function Topbar({ onMenuClick }) {
               alt="IQLead"
               width={260}
               height={72}
-              className="h-10 w-full object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-12 dark:brightness-0 dark:invert"
+              className="h-10 w-100 object-contain drop-shadow-[0_0_12px_rgba(15,23,42,0.75)] sm:h-12 dark:brightness-0 dark:invert"
               priority
             />
           </div>
