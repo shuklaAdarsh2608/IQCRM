@@ -33,11 +33,18 @@ export default function LeadDetailPage({ params }) {
   const [savingRemark, setSavingRemark] = useState(false);
   const [paymentType, setPaymentType] = useState("FULL");
   const [dealAmount, setDealAmount] = useState("");
+  const [wonAt, setWonAt] = useState("");
+  const [paymentExpectedBy, setPaymentExpectedBy] = useState("");
+  const [wonNote, setWonNote] = useState("");
   const [userRole, setUserRole] = useState(null);
   const [savingRating, setSavingRating] = useState(false);
   const [auditLog, setAuditLog] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [approval, setApproval] = useState(null);
+  const [approvalLoading, setApprovalLoading] = useState(false);
+  const [approvalActionLoading, setApprovalActionLoading] = useState(false);
+  const [approvalMessage, setApprovalMessage] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -65,9 +72,32 @@ export default function LeadDetailPage({ params }) {
               ? String(Number(res.data.data.valueAmount))
               : ""
           );
+          const toLocalInput = (d) => {
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          };
+          const now = new Date();
+          setWonAt(res.data.data.wonAt ? toLocalInput(new Date(res.data.data.wonAt)) : toLocalInput(now));
+          const expected = new Date(res.data.data.approvalDeadlineAt || now);
+          if (!res.data.data.approvalDeadlineAt) expected.setHours(expected.getHours() + 72);
+          setPaymentExpectedBy(toLocalInput(expected));
         }
       })
       .finally(() => setLoading(false));
+  };
+
+  const loadApproval = () => {
+    const leadId = params?.id;
+    if (!leadId) return;
+    setApprovalLoading(true);
+    api
+      .get(`/streak-approvals/by-lead/${leadId}`)
+      .then((res) => {
+        if (res.data?.success && res.data?.data) setApproval(res.data.data);
+        else setApproval(null);
+      })
+      .catch(() => setApproval(null))
+      .finally(() => setApprovalLoading(false));
   };
 
   const loadRemarks = () => {
@@ -108,26 +138,95 @@ export default function LeadDetailPage({ params }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lead?.id, userRole]);
 
+  useEffect(() => {
+    if (lead?.status === "WON") {
+      loadApproval();
+    } else {
+      setApproval(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead?.status, lead?.id]);
+
   const handleStatusSave = () => {
     if (!status || !lead) return;
     setSavingStatus(true);
-    const payload = { status };
-    if (status === "WON") {
-      payload.valueAmount = Number(dealAmount || 0);
-      payload.valueCurrency = "INR";
-    }
-    api
-      .put(`/leads/${params.id}`, payload)
+    setApprovalMessage(null);
+    const isWon = status === "WON";
+    const reqPromise = isWon
+      ? api.post(`/leads/${params.id}/mark-won`, {
+          wonAmount: Number(dealAmount || 0),
+          wonAt: wonAt ? new Date(wonAt).toISOString() : new Date().toISOString(),
+          paymentExpectedBy: paymentExpectedBy ? new Date(paymentExpectedBy).toISOString() : new Date().toISOString(),
+          note: wonNote || ""
+        })
+      : api.put(`/leads/${params.id}`, { status });
+
+    reqPromise
       .then((res) => {
-        if (res.data?.success && res.data?.data) {
-          setLead(res.data.data);
+        if (res.data?.success) {
+          loadLead();
           if (userRole && ADMIN_ROLES.includes(userRole)) loadAuditLog();
-          if (status === "WON") {
+          if (isWon) {
             setShowCelebration(true);
+            setApprovalMessage("Marked WON. Revenue is now pending manager approval (72h window).");
+            loadApproval();
           }
         }
       })
       .finally(() => setSavingStatus(false));
+  };
+
+  const canApprove = userRole && ["MANAGER", "ADMIN", "SUPER_ADMIN"].includes(userRole);
+
+  const timeLeftLabel = (deadline) => {
+    if (!deadline) return "—";
+    const d = new Date(deadline);
+    const ms = d.getTime() - Date.now();
+    if (ms <= 0) return "Expired";
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours >= 24) return `${Math.floor(hours / 24)}d ${hours % 24}h left`;
+    if (hours > 0) return `${hours}h ${mins}m left`;
+    return `${mins}m left`;
+  };
+
+  const urgencyClass = (deadline) => {
+    if (!deadline) return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100";
+    const ms = new Date(deadline).getTime() - Date.now();
+    if (ms <= 0) return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200";
+    const hours = ms / (1000 * 60 * 60);
+    if (hours <= 6) return "bg-red-50 text-red-700 dark:bg-red-500/20 dark:text-red-200";
+    if (hours <= 24) return "bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200";
+    return "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200";
+  };
+
+  const handleApproveRevenue = () => {
+    if (!approval?.id || approvalActionLoading) return;
+    setApprovalActionLoading(true);
+    api
+      .post(`/streak-approvals/${approval.id}/approve`, { paymentReceived: true, approvalNote: "" })
+      .then(() => {
+        setApprovalMessage("Approved revenue. It now counts in revenue + streak.");
+        loadLead();
+        loadApproval();
+      })
+      .catch((e) => setApprovalMessage(e.response?.data?.message || e.message || "Failed"))
+      .finally(() => setApprovalActionLoading(false));
+  };
+
+  const handleRejectRevenue = () => {
+    if (!approval?.id || approvalActionLoading) return;
+    const rejectionNote = window.prompt("Reason to reject this won revenue?") || "";
+    setApprovalActionLoading(true);
+    api
+      .post(`/streak-approvals/${approval.id}/reject`, { rejectionNote })
+      .then(() => {
+        setApprovalMessage("Rejected revenue. Streak is broken for the sales user.");
+        loadLead();
+        loadApproval();
+      })
+      .catch((e) => setApprovalMessage(e.response?.data?.message || e.message || "Failed"))
+      .finally(() => setApprovalActionLoading(false));
   };
 
   const handleRatingChange = (value) => {
@@ -413,6 +512,42 @@ export default function LeadDetailPage({ params }) {
                     placeholder="Enter amount in ₹"
                   />
                 </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                      Won at
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={wonAt}
+                      onChange={(e) => setWonAt(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                      Expected payment by (≤72h)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={paymentExpectedBy}
+                      onChange={(e) => setPaymentExpectedBy(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                    Note / proof (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={wonNote}
+                    onChange={(e) => setWonNote(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-orange-400 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                    placeholder="Any note, proof, remark"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -425,6 +560,53 @@ export default function LeadDetailPage({ params }) {
             {savingStatus ? "Saving..." : "Save status"}
           </button>
         </div>
+
+        {lead.status === "WON" && (
+          <div className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm md:col-span-1 dark:bg-slate-900/85 dark:border dark:border-slate-800">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">Revenue approval</p>
+              <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${urgencyClass(lead.approvalDeadlineAt)}`}>
+                {lead.revenueApprovalStatus || "—"} · {timeLeftLabel(lead.approvalDeadlineAt)}
+              </span>
+            </div>
+            {approvalMessage && (
+              <p className="mb-2 text-xs text-slate-600 dark:text-slate-300">{approvalMessage}</p>
+            )}
+            {approvalLoading ? (
+              <p className="text-xs text-slate-500 dark:text-slate-300">Loading approval...</p>
+            ) : approval ? (
+              <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                <p><span className="text-slate-500">Won amount:</span> <span className="font-medium text-slate-800 dark:text-slate-100">₹ {Number(approval.wonAmount || 0).toLocaleString("en-IN")}</span></p>
+                <p><span className="text-slate-500">Won at:</span> <span className="font-medium text-slate-800 dark:text-slate-100">{new Date(approval.wonAt).toLocaleString()}</span></p>
+                <p><span className="text-slate-500">Deadline:</span> <span className="font-medium text-slate-800 dark:text-slate-100">{new Date(approval.approvalDeadlineAt).toLocaleString()}</span></p>
+                <p><span className="text-slate-500">Sales user:</span> <span className="font-medium text-slate-800 dark:text-slate-100">{approval.salesUser?.name || "—"}</span></p>
+
+                {canApprove && approval.approvalStatus === "PENDING" && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleApproveRevenue}
+                      disabled={approvalActionLoading}
+                      className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
+                    >
+                      {approvalActionLoading ? "..." : "Approve"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRejectRevenue}
+                      disabled={approvalActionLoading}
+                      className="rounded-xl bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-slate-300">No approval record found.</p>
+            )}
+          </div>
+        )}
 
         <div className="rounded-2xl bg-white/80 p-4 text-sm shadow-sm md:col-span-2 dark:bg-slate-900/85 dark:border dark:border-slate-800">
           <p className="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-50">Remarks</p>

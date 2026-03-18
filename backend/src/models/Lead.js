@@ -80,6 +80,33 @@ Lead.init(
       defaultValue: 0,
       field: "value_amount"
     },
+    wonAmount: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+      field: "won_amount"
+    },
+    wonAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "won_at"
+    },
+    revenueApprovalStatus: {
+      type: DataTypes.ENUM("NONE", "PENDING", "APPROVED", "REJECTED", "EXPIRED"),
+      allowNull: false,
+      defaultValue: "NONE",
+      field: "revenue_approval_status"
+    },
+    approvalDeadlineAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "approval_deadline_at"
+    },
+    streakCounted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "streak_counted"
+    },
     expectedCloseDate: {
       type: DataTypes.DATEONLY,
       allowNull: true,

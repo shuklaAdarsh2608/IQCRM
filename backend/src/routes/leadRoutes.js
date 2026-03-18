@@ -7,6 +7,7 @@ import {
   getLeadAuditLog,
   createLead,
   updateLead,
+  markLeadWon,
   assignLead,
   bulkAssignLeads,
   importPreview,
@@ -60,6 +61,16 @@ router.post(
 router.get("/:id/audit", requireRole(["SUPER_ADMIN", "ADMIN"]), getLeadAuditLog);
 router.get("/:id", getLeadById);
 router.put("/:id", updateLead);
+router.post(
+  "/:id/mark-won",
+  [
+    body("wonAmount").notEmpty().withMessage("wonAmount is required").isFloat({ gt: 0 }),
+    body("wonAt").notEmpty().withMessage("wonAt is required"),
+    body("paymentExpectedBy").notEmpty().withMessage("paymentExpectedBy is required"),
+    body("note").optional().isString()
+  ],
+  markLeadWon
+);
 router.delete("/:id", requireRole(["SUPER_ADMIN", "ADMIN"]), deleteLead);
 router.get("/:id/remarks", listLeadRemarks);
 router.post("/:id/remarks", body("remark").notEmpty().withMessage("Remark is required"), addLeadRemark);

@@ -9,6 +9,8 @@ import { ImportLog } from "../models/ImportLog.js";
 import { NotificationLog } from "../models/NotificationLog.js";
 import { ActivityLog } from "../models/ActivityLog.js";
 import { User } from "../models/User.js";
+import { notifyUser } from "../services/notificationService.js";
+import { createPendingWonApproval } from "../services/streakApprovalService.js";
 import { parse } from "csv-parse/sync";
 import * as XLSX from "xlsx";
 
@@ -269,12 +271,7 @@ export async function deleteLead(req, res, next) {
       const title = "Lead delete requested";
       const message = `${requester?.name || "Admin"} requested to delete lead #${lead.id} (${lead.firstName} ${lead.lastName}). Approve or reject in Pending delete requests.`;
       for (const sa of superAdmins) {
-        await NotificationLog.create({
-          userId: sa.id,
-          type: "LEAD_DELETE_REQUEST",
-          title,
-          message
-        });
+        await notifyUser(sa.id, { type: "LEAD_DELETE_REQUEST", title, message, leadId: lead.id });
       }
       return res.status(202).json({
         success: true,
@@ -440,12 +437,7 @@ export async function scheduleCall(req, res, next) {
     const message = `Call for lead #${lead.id} (${lead.firstName} ${lead.lastName || ""}) on ${when.toLocaleString()} - ${agenda || "No agenda"}`;
 
     for (const m of managers) {
-      await NotificationLog.create({
-        userId: m.id,
-        type: "SCHEDULED_CALL",
-        title,
-        message
-      });
+      await notifyUser(m.id, { type: "SCHEDULED_CALL", title, message, leadId: lead.id });
     }
 
     res.status(201).json({ success: true, data: call });
@@ -828,6 +820,14 @@ export async function assignLead(req, res, next) {
       toUserId: toUser.id,
       assignedBy: req.user.id
     });
+    try {
+      await notifyUser(toUser.id, {
+        type: "LEAD_ASSIGNED",
+        title: "New lead assigned",
+        message: `Lead #${lead.id} (${lead.firstName} ${lead.lastName || ""}) was assigned to you.`,
+        leadId: lead.id
+      });
+    } catch {}
     await logLeadAudit(lead.id, req.user.id, "ownerId", oldOwner?.name ?? "—", toUser.name);
     if (oldStatus !== "FRESH") {
       await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "FRESH");
@@ -880,6 +880,14 @@ export async function bulkAssignLeads(req, res, next) {
           toUserId: toUser.id,
           assignedBy: req.user.id
         });
+        try {
+          await notifyUser(toUser.id, {
+            type: "LEAD_ASSIGNED",
+            title: "New lead assigned",
+            message: `Lead #${lead.id} (${lead.firstName} ${lead.lastName || ""}) was assigned to you.`,
+            leadId: lead.id
+          });
+        } catch {}
         if (oldStatus !== "FRESH") {
           await logLeadAudit(lead.id, req.user.id, "status", oldStatus, "FRESH");
         }
@@ -890,6 +898,36 @@ export async function bulkAssignLeads(req, res, next) {
       }
     }
     res.json({ success: true, data: results });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function markLeadWon(req, res, next) {
+  try {
+    const leadId = Number(req.params.id);
+    if (!leadId) return res.status(400).json({ success: false, message: "Invalid lead id" });
+    const { wonAmount, wonAt, paymentExpectedBy, note } = req.body || {};
+
+    const lead = await Lead.findByPk(leadId);
+    if (!lead) return res.status(404).json({ success: false, message: "Lead not found" });
+
+    // Sales user can only mark their own assigned leads WON. Admin/SA can mark any.
+    const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(req.user.role);
+    if (!isAdmin && Number(lead.ownerId) !== Number(req.user.id)) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    const approval = await createPendingWonApproval({
+      leadId: lead.id,
+      salesUserId: lead.ownerId,
+      wonAmount,
+      wonAt,
+      paymentExpectedBy,
+      proofNote: note || null
+    });
+
+    res.status(201).json({ success: true, data: { leadId: lead.id, approval } });
   } catch (err) {
     next(err);
   }

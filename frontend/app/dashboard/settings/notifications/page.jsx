@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-
-const STORAGE_KEY = "iqlead_notification_prefs";
+import api from "../../../../services/api";
 
 const defaultPrefs = {
   inAppLeadAssigned: true,
@@ -12,7 +11,8 @@ const defaultPrefs = {
   inAppLeadDeleteRequest: true,
   emailLeadAssigned: true,
   emailCallScheduled: true,
-  emailCallReminder: true
+  emailCallReminder: true,
+  pushEnabled: true
 };
 
 const toggles = [
@@ -21,44 +21,87 @@ const toggles = [
   { key: "inAppLeadDeleteRequest", label: "Lead delete request (Admin → Super Admin)", inApp: true },
   { key: "emailLeadAssigned", label: "Email when a lead is assigned to you", inApp: false },
   { key: "emailCallScheduled", label: "Email when a call is scheduled", inApp: false },
-  { key: "emailCallReminder", label: "Email reminder 5 minutes before scheduled call", inApp: false }
+  { key: "emailCallReminder", label: "Email reminder 5 minutes before scheduled call", inApp: false },
+  { key: "pushEnabled", label: "Push notifications (desktop/mobile)", inApp: false }
 ];
 
-function loadPrefs() {
-  if (typeof window === "undefined") return defaultPrefs;
+async function loadPrefsFromApi() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return { ...defaultPrefs, ...parsed };
-    }
+    const res = await api.get("/notifications/prefs");
+    if (res.data?.success && res.data?.data) return { ...defaultPrefs, ...res.data.data };
   } catch {}
   return defaultPrefs;
 }
 
-function savePrefs(prefs) {
-  if (typeof window === "undefined") return;
+async function savePrefsToApi(prefs) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-  } catch {}
+    await api.put("/notifications/prefs", prefs);
+  } catch {
+    // ignore
+  }
+}
+
+async function ensurePushSubscription() {
+  if (typeof window === "undefined") return { ok: false, reason: "no_window" };
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return { ok: false, reason: "unsupported" };
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return { ok: false, reason: "permission_denied" };
+
+  const reg = await navigator.serviceWorker.register("/sw.js");
+  const existing = await reg.pushManager.getSubscription();
+  if (existing) {
+    await api.post("/notifications/push/subscribe", existing.toJSON());
+    return { ok: true };
+  }
+  const keyRes = await api.get("/notifications/push/public-key");
+  const publicKey = keyRes.data?.data?.publicKey || "";
+  if (!publicKey) return { ok: false, reason: "missing_vapid" };
+
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  };
+
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(publicKey)
+  });
+  await api.post("/notifications/push/subscribe", sub.toJSON());
+  return { ok: true };
 }
 
 export default function SettingsNotificationsPage() {
   const [prefs, setPrefs] = useState(defaultPrefs);
   const [saved, setSaved] = useState(false);
+  const [pushStatus, setPushStatus] = useState(null);
 
   useEffect(() => {
-    setPrefs(loadPrefs());
+    loadPrefsFromApi().then(setPrefs);
   }, []);
 
   const handleToggle = (key) => {
     setPrefs((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      savePrefs(next);
+      savePrefsToApi(next);
       return next;
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleEnablePush = async () => {
+    setPushStatus(null);
+    try {
+      const res = await ensurePushSubscription();
+      if (res.ok) setPushStatus({ type: "success", text: "Push notifications enabled for this device." });
+      else setPushStatus({ type: "error", text: `Push not enabled: ${res.reason}` });
+    } catch (e) {
+      setPushStatus({ type: "error", text: e?.message || "Failed to enable push." });
+    }
   };
 
   return (
@@ -120,7 +163,7 @@ export default function SettingsNotificationsPage() {
           Email notifications
         </h2>
         <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-300">
-          Receive email for the following events.
+          Receive email (and push) for the following events.
         </p>
         <ul className="mt-4 space-y-3">
           {toggles.filter((t) => !t.inApp).map((t) => (
@@ -149,6 +192,27 @@ export default function SettingsNotificationsPage() {
             </li>
           ))}
         </ul>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white/60 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+          <div className="min-w-0">
+            <p className="font-medium text-slate-700 dark:text-slate-200">Device push setup</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300">
+              Click once on each device/browser to allow push (desktop + mobile browsers).
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleEnablePush}
+            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+          >
+            Enable push on this device
+          </button>
+          {pushStatus && (
+            <p className={`w-full text-xs ${pushStatus.type === "success" ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>
+              {pushStatus.text}
+            </p>
+          )}
+        </div>
       </section>
 
       {saved && (

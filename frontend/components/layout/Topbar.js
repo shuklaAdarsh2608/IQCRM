@@ -13,6 +13,7 @@ const navItemsAll = [
   { label: "Leads", href: "/dashboard/leads" },
   { label: "Users", href: "/dashboard/users", roles: ["SUPER_ADMIN", "ADMIN"] },
   { label: "Targets", href: "/dashboard/targets", roles: ["SUPER_ADMIN", "ADMIN"] },
+  { label: "Approvals", href: "/dashboard/streak-approvals", roles: ["SUPER_ADMIN", "ADMIN", "MANAGER"] },
   { label: "Team chat", href: "/dashboard/chats" },
   { label: "Calendar", href: "/calendar" },
   { label: "Mails", href: "/mails" },

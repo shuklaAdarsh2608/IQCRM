@@ -7,6 +7,8 @@ import { LeadAssignment } from "./LeadAssignment.js";
 import { LeadDeleteRequest } from "./LeadDeleteRequest.js";
 import { ScheduledCall } from "./ScheduledCall.js";
 import { NotificationLog } from "./NotificationLog.js";
+import { NotificationPreference } from "./NotificationPreference.js";
+import { PushSubscription } from "./PushSubscription.js";
 import { ActivityLog } from "./ActivityLog.js";
 import { ImportLog } from "./ImportLog.js";
 import { ReportRequest } from "./ReportRequest.js";
@@ -17,6 +19,9 @@ import { LeadScore } from "./LeadScore.js";
 import { LeadAuditLog } from "./LeadAuditLog.js";
 import { InternalConversation } from "./InternalConversation.js";
 import { InternalChatMessage } from "./InternalChatMessage.js";
+import { LeadWonApproval } from "./LeadWonApproval.js";
+import { SalesStreak } from "./SalesStreak.js";
+import { SalesStreakLog } from "./SalesStreakLog.js";
 
 InternalConversation.hasMany(InternalChatMessage, { as: "messages", foreignKey: "conversationId" });
 
@@ -35,6 +40,8 @@ export {
   LeadDeleteRequest,
   ScheduledCall,
   NotificationLog,
+  NotificationPreference,
+  PushSubscription,
   ActivityLog,
   ImportLog,
   ReportRequest,
@@ -44,6 +51,9 @@ export {
   LeadScore,
   LeadAuditLog,
   InternalConversation,
-  InternalChatMessage
+  InternalChatMessage,
+  LeadWonApproval,
+  SalesStreak,
+  SalesStreakLog
 };
 

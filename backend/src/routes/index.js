@@ -9,6 +9,8 @@ import { notificationRouter } from "./notificationRoutes.js";
 import { reportRouter } from "./reportRoutes.js";
 import { chatRouter } from "./chatRoutes.js";
 import { activityLogRouter } from "./activityLogRoutes.js";
+import { streakApprovalRouter } from "./streakApprovalRoutes.js";
+import { streakRouter } from "./streakRoutes.js";
 
 const router = express.Router();
 
@@ -22,6 +24,8 @@ router.use("/notifications", notificationRouter);
 router.use("/reports", reportRouter);
 router.use("/chats", chatRouter);
 router.use("/activity-logs", activityLogRouter);
+router.use("/streak-approvals", streakApprovalRouter);
+router.use("/streaks", streakRouter);
 
 export { router as apiRouter };
 

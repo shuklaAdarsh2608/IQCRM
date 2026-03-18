@@ -58,6 +58,7 @@ router.get("/leaderboard", async (req, res, next) => {
     // regardless of who is viewing the dashboard.
     const where = {
       status: "WON",
+      revenueApprovalStatus: "APPROVED",
       ...(start != null && end != null && { createdAt: { [Op.gte]: start, [Op.lt]: end } })
     };
 
@@ -135,7 +136,9 @@ router.get("/summary", async (req, res, next) => {
     }
 
     const newLeads = await Lead.count({ where });
-    const totalRevenue = await Lead.sum("valueAmount", { where });
+    const totalRevenue = await Lead.sum("valueAmount", {
+      where: { ...where, status: "WON", revenueApprovalStatus: "APPROVED" }
+    });
 
     // Assigned leads count (all time) - role-based visibility
     const assignedWhere = {};
@@ -143,7 +146,7 @@ router.get("/summary", async (req, res, next) => {
     const assignedLeadsCount = await Lead.count({ where: assignedWhere });
 
     // Won leads count (all time) - role-based visibility
-    const wonWhere = { status: "WON" };
+    const wonWhere = { status: "WON", revenueApprovalStatus: "APPROVED" };
     if (visibleIds !== null) wonWhere.ownerId = { [Op.in]: visibleIds };
     const wonLeadsCount = await Lead.count({ where: wonWhere });
 

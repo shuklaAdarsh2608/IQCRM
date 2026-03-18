@@ -7,6 +7,8 @@ import {
   Calendar,
   Mail,
   BarChart3,
+  Trophy,
+  CheckCircle2,
   Settings as SettingsIcon,
   X
 } from "lucide-react";
@@ -18,6 +20,13 @@ import { usePathname } from "next/navigation";
 const allNavItems = [
   { label: "Dashboard", icon: LayoutGrid, href: "/dashboard" },
   { label: "Leads", icon: Users, href: "/dashboard/leads" },
+  { label: "My streak", icon: Trophy, href: "/dashboard/streaks" },
+  {
+    label: "Approvals",
+    icon: CheckCircle2,
+    href: "/dashboard/streak-approvals",
+    roles: ["SUPER_ADMIN", "ADMIN", "MANAGER"]
+  },
   {
     label: "Users",
     icon: Users,
