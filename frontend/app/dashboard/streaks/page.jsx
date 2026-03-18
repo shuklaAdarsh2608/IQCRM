@@ -7,6 +7,8 @@ import { Award, Flame, Timer, TrendingUp, Trophy, Users } from "lucide-react";
 export default function MyStreakPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const [activeLeadCount, setActiveLeadCount] = useState(null);
+  const [wonLeadCount, setWonLeadCount] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -16,6 +18,29 @@ export default function MyStreakPage() {
         if (res.data?.success) setData(res.data.data);
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadCounts = async () => {
+      try {
+        const [activeRes, wonRes] = await Promise.all([
+          api.get("/leads", { params: { status: "ACTIVE", limit: 1, page: 1 } }),
+          api.get("/leads", { params: { status: "WON", limit: 1, page: 1 } })
+        ]);
+        if (cancelled) return;
+        setActiveLeadCount(Number(activeRes.data?.pagination?.total ?? 0));
+        setWonLeadCount(Number(wonRes.data?.pagination?.total ?? 0));
+      } catch {
+        if (cancelled) return;
+        setActiveLeadCount(0);
+        setWonLeadCount(0);
+      }
+    };
+    loadCounts();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
@@ -28,7 +53,6 @@ export default function MyStreakPage() {
 
   const s = data?.streak;
   const counts = data?.counts;
-  const recent = data?.recent || [];
   const current = Number(s?.currentStreakCount || 0);
   const longest = Number(s?.longestStreakCount || 0);
   const wins = Number(s?.totalApprovedWins || 0);
@@ -109,7 +133,7 @@ export default function MyStreakPage() {
           </div>
 
           {/* Mini stats */}
-          <div className="mt-5 grid grid-cols-3 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
               <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">PENDING</p>
               <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">{pending}</p>
@@ -121,6 +145,18 @@ export default function MyStreakPage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
               <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">REVENUE</p>
               <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">₹ {revenue.toLocaleString("en-IN")}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">ACTIVE LEADS</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                {activeLeadCount == null ? "—" : activeLeadCount}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">WON LEADS</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                {wonLeadCount == null ? "—" : wonLeadCount}
+              </p>
             </div>
           </div>
         </div>
@@ -172,41 +208,6 @@ export default function MyStreakPage() {
         </div>
       </div>
 
-      {/* Activity feed styled like panel */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">Recent activity</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Streak history & approval outcomes</p>
-        </div>
-
-        {recent.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500 dark:text-slate-300">No streak events yet.</p>
-        ) : (
-          <ul className="mt-3 grid gap-2">
-            {recent.map((r) => (
-              <li key={r.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/40">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-900">
-                      <Flame className="h-4 w-4 text-orange-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">{r.actionType}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Streak: {r.streakBefore} → {r.streakAfter}
-                        {r.revenueAmount != null ? ` · ₹ ${Number(r.revenueAmount).toLocaleString("en-IN")}` : ""}
-                        {r.lead ? ` · ${r.lead.firstName || ""} ${r.lead.lastName || ""}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{r.created_at ? new Date(r.created_at).toLocaleString() : ""}</p>
-                </div>
-                {r.note && <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">{r.note}</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
   );
 }
