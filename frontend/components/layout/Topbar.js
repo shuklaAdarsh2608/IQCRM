@@ -105,19 +105,19 @@ export function Topbar({ onMenuClick }) {
     return item.roles.includes(role);
   });
 
-  const showAdminMenu = role === "SUPER_ADMIN" || role === "ADMIN";
-  const adminSubItems = [
-    { label: "Users", href: "/dashboard/users" },
+  const isAdminLike = role === "ADMIN" || role === "SUPER_ADMIN";
+  const adminDropdownItems = [
     { label: "Targets", href: "/dashboard/targets" },
-    { label: "Approvals", href: "/dashboard/streak-approvals" }
+    { label: "Approvals", href: "/dashboard/streak-approvals" },
+    { label: "Team chat", href: "/dashboard/chats" }
   ];
 
-  const navItemsForTabs = showAdminMenu
+  const navItemsForRole = isAdminLike
     ? navItems.filter(
-        (i) =>
-          i.href !== "/dashboard/users" &&
-          i.href !== "/dashboard/targets" &&
-          i.href !== "/dashboard/streak-approvals"
+        (item) =>
+          !["/dashboard/targets", "/dashboard/streak-approvals", "/dashboard/chats"].includes(
+            item.href
+          )
       )
     : navItems;
 
@@ -139,13 +139,14 @@ export function Topbar({ onMenuClick }) {
           className="flex items-center px-1 py-0.5"
           aria-label="Go to dashboard"
         >
-          <div className="relative flex h-20 shrink-0 items-center sm:h-24">
+          {/* Keep navbar height fixed; allow logo to overflow bigger */}
+          <div className="relative flex h-10 shrink-0 items-center overflow-visible sm:h-11">
             <Image
               src="/ClassifyIQLogo.png"
               alt="IQLead"
               width={280}
               height={80}
-              className="h-16 w-auto object-contain sm:h-20 dark:brightness-0 dark:invert"
+              className="h-12 w-auto -translate-y-0.5 object-contain sm:h-14 md:h-16 dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -156,57 +157,70 @@ export function Topbar({ onMenuClick }) {
       <nav className="flex min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 lg:justify-center lg:text-xs dark:text-slate-200">
         <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max flex-nowrap items-center gap-1.5 px-1 lg:mx-auto lg:gap-2">
-            {navItemsForTabs.map((item) => {
+            {navItemsForRole.map((item) => {
               const active =
                 pathname === item.href ||
                 (item.href !== "/dashboard" && pathname.startsWith(item.href));
-              return (
-                <div key={item.href} className="flex items-center gap-1.5 lg:gap-2">
-                  <Link
-                    href={item.href}
-                    className={
-                      "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 transition sm:px-3.5 " +
-                      (active
-                        ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
-                        : "hover:bg-slate-100 dark:hover:bg-slate-800")
-                    }
-                  >
-                    {item.label}
-                  </Link>
 
-                  {showAdminMenu && item.href === "/dashboard/leads" && (
-                    <div className="group relative shrink-0">
-                      <button
-                        type="button"
-                        className={
-                          "whitespace-nowrap rounded-full px-2.5 py-1.5 transition sm:px-3.5 " +
-                          (adminSubItems.some(
-                            (s) =>
-                              pathname === s.href ||
-                              (s.href !== "/dashboard" && pathname.startsWith(s.href))
-                          )
-                            ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
-                            : "hover:bg-slate-100 dark:hover:bg-slate-800")
-                        }
-                      >
-                        Admin
-                      </button>
-                      <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 w-44 opacity-0 transition group-hover:pointer-events-auto group-hover:opacity-100">
-                        <div className="rounded-xl border border-slate-200 bg-white py-2 text-xs text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-                          {adminSubItems.map((s) => (
-                            <Link
-                              key={s.href}
-                              href={s.href}
-                              className="block px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-                            >
-                              {s.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
+              if (isAdminLike && item.href === "/dashboard/users") {
+                const dropdownActive =
+                  active ||
+                  adminDropdownItems.some(
+                    (d) => pathname === d.href || pathname.startsWith(d.href)
+                  );
+                return (
+                  <div key={item.href} className="relative shrink-0 group">
+                    <Link
+                      href={item.href}
+                      className={
+                        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1.5 transition sm:px-3.5 " +
+                        (dropdownActive
+                          ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-800")
+                      }
+                    >
+                      {item.label}
+                      <span className={"text-[10px] opacity-70 " + (dropdownActive ? "text-white dark:text-slate-900" : "")}>
+                        ▼
+                      </span>
+                    </Link>
+
+                    <div className="invisible absolute left-0 top-full z-50 mt-2 min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg opacity-0 backdrop-blur transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
+                      {adminDropdownItems.map((d) => {
+                        const dActive = pathname === d.href || pathname.startsWith(d.href);
+                        return (
+                          <Link
+                            key={d.href}
+                            href={d.href}
+                            className={
+                              "block rounded-xl px-3 py-2 transition " +
+                              (dActive
+                                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                                : "hover:bg-slate-50 dark:hover:bg-slate-800")
+                            }
+                          >
+                            {d.label}
+                          </Link>
+                        );
+                      })}
                     </div>
-                  )}
-                </div>
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={
+                    "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 transition sm:px-3.5 " +
+                    (active
+                      ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800")
+                  }
+                >
+                  {item.label}
+                </Link>
               );
             })}
           </div>
