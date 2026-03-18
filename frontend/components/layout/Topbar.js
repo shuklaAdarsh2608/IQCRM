@@ -120,16 +120,16 @@ export function Topbar({ onMenuClick }) {
         )}
         <Link
           href="/dashboard"
-          className="flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:bg-slate-800/60"
+          className="flex items-center px-1 py-0.5"
           aria-label="Go to dashboard"
         >
-          <div className="relative flex h-10 shrink-0 items-center sm:h-11">
+          <div className="relative flex h-12 shrink-0 items-center sm:h-14">
             <Image
               src="/ClassifyIQLogo.png"
               alt="IQLead"
               width={280}
               height={80}
-              className="h-9 w-auto object-contain sm:h-10 dark:brightness-0 dark:invert"
+              className="h-11 w-auto object-contain sm:h-14 dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -137,7 +137,7 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
-      <nav className="hidden min-w-0 flex-1 items-center justify-center py-0.5 text-xs font-medium text-slate-600 lg:flex dark:text-slate-200">
+      <nav className="min-w-0 flex-1 items-center justify-center py-0.5 text-xs font-medium text-slate-600 flex dark:text-slate-200">
         <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max flex-nowrap items-center justify-center gap-2 px-1">
         {navItems.map((item) => {
