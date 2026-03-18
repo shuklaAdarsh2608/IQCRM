@@ -106,7 +106,7 @@ export function Topbar({ onMenuClick }) {
   });
 
   return (
-    <header className="sticky top-0 z-20 mb-3 flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-md sm:px-4 sm:py-2.5 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
+    <header className="sticky top-0 z-20 mb-3 flex items-center justify-between gap-2 overflow-hidden rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-md sm:px-4 sm:py-2.5 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
       <div className="flex min-w-0 shrink-0 items-center gap-2">
         {onMenuClick && (
           <button
@@ -137,9 +137,9 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
-      <nav className="min-w-0 flex-1 items-center justify-center py-0.5 text-xs font-medium text-slate-600 flex dark:text-slate-200">
+      <nav className="flex min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 lg:justify-center lg:text-xs dark:text-slate-200">
         <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="mx-auto flex w-max flex-nowrap items-center justify-center gap-2 px-1">
+          <div className="flex w-max flex-nowrap items-center gap-1.5 px-1 lg:mx-auto lg:gap-2">
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
@@ -149,7 +149,7 @@ export function Topbar({ onMenuClick }) {
               key={item.href}
               href={item.href}
               className={
-                "shrink-0 rounded-full px-3 py-1.5 transition sm:px-3.5 " +
+                "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 transition sm:px-3.5 " +
                 (active
                   ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
                   : "hover:bg-slate-100 dark:hover:bg-slate-800")
