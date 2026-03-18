@@ -3,7 +3,7 @@
 import { Bell, Menu, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import api from "../../services/api";
 import { ThemeToggle } from "../../src/components/theme-toggle";
@@ -47,6 +47,9 @@ export function Topbar({ onMenuClick }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(false);
+  const [adminUsersOpen, setAdminUsersOpen] = useState(false);
+  const [adminUsersPos, setAdminUsersPos] = useState({ left: 0, top: 0, width: 0 });
+  const adminUsersAnchorRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -66,7 +69,29 @@ export function Topbar({ onMenuClick }) {
   useEffect(() => {
     setMenuOpen(false);
     setNotifOpen(false);
+    setAdminUsersOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!adminUsersOpen) return;
+    const updatePos = () => {
+      const el = adminUsersAnchorRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setAdminUsersPos({
+        left: Math.round(rect.left),
+        top: Math.round(rect.bottom + 8),
+        width: Math.round(rect.width)
+      });
+    };
+    updatePos();
+    window.addEventListener("resize", updatePos);
+    window.addEventListener("scroll", updatePos, true);
+    return () => {
+      window.removeEventListener("resize", updatePos);
+      window.removeEventListener("scroll", updatePos, true);
+    };
+  }, [adminUsersOpen]);
 
   const loadNotifications = async () => {
     setNotifLoading(true);
@@ -146,7 +171,7 @@ export function Topbar({ onMenuClick }) {
               alt="IQLead"
               width={280}
               height={80}
-              className="h-12 w-auto -translate-y-0.5 object-contain sm:h-14 md:h-16 dark:brightness-0 dark:invert"
+              className="h-12 w-auto object-contain dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -155,7 +180,7 @@ export function Topbar({ onMenuClick }) {
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
       <nav className="flex min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 lg:justify-center lg:text-xs dark:text-slate-200">
-        <div className="min-w-0 max-w-full overflow-x-auto overflow-y-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max flex-nowrap items-center gap-1.5 px-1 lg:mx-auto lg:gap-2">
             {navItemsForRole.map((item) => {
               const active =
@@ -169,7 +194,14 @@ export function Topbar({ onMenuClick }) {
                     (d) => pathname === d.href || pathname.startsWith(d.href)
                   );
                 return (
-                  <div key={item.href} className="relative shrink-0 group">
+                  <div
+                    key={item.href}
+                    className="relative shrink-0"
+                    ref={adminUsersAnchorRef}
+                    onMouseEnter={() => setAdminUsersOpen(true)}
+                    onMouseLeave={() => setAdminUsersOpen(false)}
+                    onFocusCapture={() => setAdminUsersOpen(true)}
+                  >
                     <Link
                       href={item.href}
                       className={
@@ -184,26 +216,6 @@ export function Topbar({ onMenuClick }) {
                         ▼
                       </span>
                     </Link>
-
-                    <div className="invisible absolute left-0 top-full z-50 mt-2 min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg opacity-0 backdrop-blur transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
-                      {adminDropdownItems.map((d) => {
-                        const dActive = pathname === d.href || pathname.startsWith(d.href);
-                        return (
-                          <Link
-                            key={d.href}
-                            href={d.href}
-                            className={
-                              "block rounded-xl px-3 py-2 transition " +
-                              (dActive
-                                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                                : "hover:bg-slate-50 dark:hover:bg-slate-800")
-                            }
-                          >
-                            {d.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
                   </div>
                 );
               }
@@ -226,6 +238,34 @@ export function Topbar({ onMenuClick }) {
           </div>
         </div>
       </nav>
+
+      {isAdminLike && adminUsersOpen && (
+        <div
+          className="fixed z-[100] min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100"
+          style={{ left: adminUsersPos.left, top: adminUsersPos.top, minWidth: Math.max(176, adminUsersPos.width) }}
+          onMouseEnter={() => setAdminUsersOpen(true)}
+          onMouseLeave={() => setAdminUsersOpen(false)}
+        >
+          {adminDropdownItems.map((d) => {
+            const dActive = pathname === d.href || pathname.startsWith(d.href);
+            return (
+              <Link
+                key={d.href}
+                href={d.href}
+                onClick={() => setAdminUsersOpen(false)}
+                className={
+                  "block rounded-xl px-3 py-2 transition " +
+                  (dActive
+                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                    : "hover:bg-slate-50 dark:hover:bg-slate-800")
+                }
+              >
+                {d.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <ThemeToggle />
