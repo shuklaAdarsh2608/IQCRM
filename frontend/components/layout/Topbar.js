@@ -123,16 +123,16 @@ export function Topbar({ onMenuClick }) {
           className="flex items-center px-1 py-0.5"
           aria-label="Go to dashboard"
         >
-          <div className="relative flex h-12 shrink-0 items-center sm:h-14">
-            <Image
-              src="/ClassifyIQLogo.png"
-              alt="IQLead"
-              width={280}
-              height={80}
-              className="h-11 w-auto object-contain sm:h-14 dark:brightness-0 dark:invert"
-              priority
-            />
-          </div>
+          <div className="relative flex h-16 shrink-0 items-center sm:h-20">
+  <Image
+    src="/ClassifyIQLogo.png"
+    alt="IQLead"
+    width={280}
+    height={80}
+    className="h-14 w-auto object-contain sm:h-16 dark:brightness-0 dark:invert"
+    priority
+  />
+</div>
         </Link>
       </div>
 
