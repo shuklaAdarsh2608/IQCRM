@@ -50,6 +50,22 @@ export function Topbar({ onMenuClick }) {
   const [adminUsersOpen, setAdminUsersOpen] = useState(false);
   const [adminUsersPos, setAdminUsersPos] = useState({ left: 0, top: 0, width: 0 });
   const adminUsersAnchorRef = useRef(null);
+  const adminUsersCloseTimerRef = useRef(null);
+
+  const cancelAdminUsersClose = () => {
+    if (adminUsersCloseTimerRef.current) {
+      clearTimeout(adminUsersCloseTimerRef.current);
+      adminUsersCloseTimerRef.current = null;
+    }
+  };
+
+  const scheduleAdminUsersClose = (delayMs = 180) => {
+    cancelAdminUsersClose();
+    adminUsersCloseTimerRef.current = setTimeout(() => {
+      setAdminUsersOpen(false);
+      adminUsersCloseTimerRef.current = null;
+    }, delayMs);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -92,6 +108,10 @@ export function Topbar({ onMenuClick }) {
       window.removeEventListener("scroll", updatePos, true);
     };
   }, [adminUsersOpen]);
+
+  useEffect(() => {
+    return () => cancelAdminUsersClose();
+  }, []);
 
   const loadNotifications = async () => {
     setNotifLoading(true);
@@ -171,7 +191,7 @@ export function Topbar({ onMenuClick }) {
               alt="IQLead"
               width={280}
               height={80}
-              className="h-24 w-auto object-contain dark:brightness-0 dark:invert"
+              className="h-26 w-auto object-contain dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -198,9 +218,15 @@ export function Topbar({ onMenuClick }) {
                     key={item.href}
                     className="relative shrink-0"
                     ref={adminUsersAnchorRef}
-                    onMouseEnter={() => setAdminUsersOpen(true)}
-                    onMouseLeave={() => setAdminUsersOpen(false)}
-                    onFocusCapture={() => setAdminUsersOpen(true)}
+                    onMouseEnter={() => {
+                      cancelAdminUsersClose();
+                      setAdminUsersOpen(true);
+                    }}
+                    onMouseLeave={() => scheduleAdminUsersClose()}
+                    onFocusCapture={() => {
+                      cancelAdminUsersClose();
+                      setAdminUsersOpen(true);
+                    }}
                   >
                     <Link
                       href={item.href}
@@ -243,10 +269,12 @@ export function Topbar({ onMenuClick }) {
         <div
           className="fixed z-[100] pointer-events-none"
           style={{ left: adminUsersPos.left, top: adminUsersPos.top, minWidth: Math.max(176, adminUsersPos.width) }}
-          onMouseEnter={() => setAdminUsersOpen(true)}
-          onMouseLeave={() => setAdminUsersOpen(false)}
         >
-          <div className="pointer-events-auto min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
+          <div
+            className="pointer-events-auto min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100"
+            onMouseEnter={() => cancelAdminUsersClose()}
+            onMouseLeave={() => scheduleAdminUsersClose()}
+          >
             {adminDropdownItems.map((d) => {
               const dActive = pathname === d.href || pathname.startsWith(d.href);
               return (
