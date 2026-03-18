@@ -155,7 +155,7 @@ export function Topbar({ onMenuClick }) {
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
       <nav className="flex min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 lg:justify-center lg:text-xs dark:text-slate-200">
-        <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="min-w-0 max-w-full overflow-x-auto overflow-y-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max flex-nowrap items-center gap-1.5 px-1 lg:mx-auto lg:gap-2">
             {navItemsForRole.map((item) => {
               const active =
