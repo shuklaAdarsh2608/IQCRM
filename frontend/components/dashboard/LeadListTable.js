@@ -505,9 +505,8 @@ export function LeadListTable() {
                 const isWon = (lead.status || "").toUpperCase() === "WON";
                 const assignedToday = isAssignedToday(lead);
                 const baseRowClass = idx % 2 === 1 ? "bg-slate-50/50 dark:bg-slate-900/40" : "";
-                const limitedHighlight = isLimitedView
-                  ? "bg-amber-50/70 border-l-4 border-amber-400 dark:bg-slate-800/80 dark:border-emerald-400"
-                  : "";
+                // Keep limited view clean: no tinted row background
+                const limitedHighlight = isLimitedView ? "border-l-4 border-slate-200 dark:border-slate-700" : "";
                 const wonHighlight = isWon
                   ? "won-row border-l-4 border-amber-400 dark:border-emerald-400"
                   : "";
