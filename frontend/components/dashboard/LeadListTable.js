@@ -8,7 +8,7 @@ import { CalendarDays } from "lucide-react";
 import api from "../../services/api";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
-/** Relationship Manager, Manager, Team Leader see only: Name, Designation, Company, Number, Mail ID, Status, Rating, Comment */
+/** Relationship Manager, Manager, Team Leader see only: Name, Company name, Status, Rating, Owner, Contact, Remarks. Admin/Super Admin see all headers. */
 const LIMITED_VIEW_ROLES = ["USER", "MANAGER", "TEAM_LEADER"];
 const TAB_MY_LEADS = "my";
 const TAB_ALL_LEADS = "all";
@@ -91,8 +91,8 @@ export function LeadListTable() {
   // Only admin can switch to "All leads"; others always see their assigned leads (My leads)
   const isAdmin = canBulkAssign;
   const effectiveTab = isAdmin ? activeTab : TAB_MY_LEADS;
-  // Relationship Manager, Manager, Team Leader see only: Name, Designation, Company, Number, Mail ID, Status, Rating, Comment
-  const isLimitedView = userRole != null && LIMITED_VIEW_ROLES.includes(userRole);
+  // Only Admin/Super Admin see all headers; USER, MANAGER, TEAM_LEADER see only: Name, Company name, Status, Rating, Owner, Contact, Remarks. Default to limited view until role is known.
+  const isLimitedView = userRole === null || !ADMIN_ROLES.includes(userRole);
 
   useEffect(() => {
     setLoading(true);
@@ -463,7 +463,7 @@ export function LeadListTable() {
                       Name
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Company
+                      Company name
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Status
