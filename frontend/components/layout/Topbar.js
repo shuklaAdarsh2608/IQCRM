@@ -171,7 +171,7 @@ export function Topbar({ onMenuClick }) {
               alt="IQLead"
               width={280}
               height={80}
-              className="h-12 w-auto object-contain dark:brightness-0 dark:invert"
+              className="h-24 w-auto object-contain dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -241,29 +241,31 @@ export function Topbar({ onMenuClick }) {
 
       {isAdminLike && adminUsersOpen && (
         <div
-          className="fixed z-[100] min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100"
+          className="fixed z-[100] pointer-events-none"
           style={{ left: adminUsersPos.left, top: adminUsersPos.top, minWidth: Math.max(176, adminUsersPos.width) }}
           onMouseEnter={() => setAdminUsersOpen(true)}
           onMouseLeave={() => setAdminUsersOpen(false)}
         >
-          {adminDropdownItems.map((d) => {
-            const dActive = pathname === d.href || pathname.startsWith(d.href);
-            return (
-              <Link
-                key={d.href}
-                href={d.href}
-                onClick={() => setAdminUsersOpen(false)}
-                className={
-                  "block rounded-xl px-3 py-2 transition " +
-                  (dActive
-                    ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
-                    : "hover:bg-slate-50 dark:hover:bg-slate-800")
-                }
-              >
-                {d.label}
-              </Link>
-            );
-          })}
+          <div className="pointer-events-auto min-w-44 rounded-2xl border border-slate-200 bg-white/95 p-2 text-xs text-slate-700 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100">
+            {adminDropdownItems.map((d) => {
+              const dActive = pathname === d.href || pathname.startsWith(d.href);
+              return (
+                <Link
+                  key={d.href}
+                  href={d.href}
+                  onClick={() => setAdminUsersOpen(false)}
+                  className={
+                    "block rounded-xl px-3 py-2 transition " +
+                    (dActive
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                      : "hover:bg-slate-50 dark:hover:bg-slate-800")
+                  }
+                >
+                  {d.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
 
