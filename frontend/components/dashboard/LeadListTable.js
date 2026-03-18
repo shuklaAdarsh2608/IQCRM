@@ -8,7 +8,7 @@ import { CalendarDays } from "lucide-react";
 import api from "../../services/api";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
-/** Relationship Manager, Manager, Team Leader see only: Name, Company name, Status, Rating, Owner, Contact, Remarks. Admin/Super Admin see all headers. */
+/** Relationship Manager, Manager, Team Leader see only: Name, Company name, Designation, Email, Phone, Status, Rating, Remarks. Admin/Super Admin see all headers. */
 const LIMITED_VIEW_ROLES = ["USER", "MANAGER", "TEAM_LEADER"];
 const TAB_MY_LEADS = "my";
 const TAB_ALL_LEADS = "all";
@@ -91,7 +91,7 @@ export function LeadListTable() {
   // Only admin can switch to "All leads"; others always see their assigned leads (My leads)
   const isAdmin = canBulkAssign;
   const effectiveTab = isAdmin ? activeTab : TAB_MY_LEADS;
-  // Only Admin/Super Admin see all headers; USER, MANAGER, TEAM_LEADER see only: Name, Company name, Status, Rating, Owner, Contact, Remarks. Default to limited view until role is known.
+  // Only Admin/Super Admin see all headers; USER, MANAGER, TEAM_LEADER see only: Name, Company name, Designation, Email, Phone, Status, Rating, Remarks. Default to limited view until role is known.
   const isLimitedView = userRole === null || !ADMIN_ROLES.includes(userRole);
 
   useEffect(() => {
@@ -450,7 +450,10 @@ export function LeadListTable() {
                       Designation
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Email / phone
+                      Email
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Phone
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Status
@@ -517,8 +520,11 @@ export function LeadListTable() {
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.title || "—"}
                       </td>
-                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || lead.phone || ""}>
-                        {lead.email || lead.phone || "—"}
+                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || ""}>
+                        {lead.email || "—"}
+                      </td>
+                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.phone || ""}>
+                        {lead.phone || "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadgeClass(lead.status)}`}>

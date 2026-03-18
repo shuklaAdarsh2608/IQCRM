@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 import api from "../../../../services/api";
 import { Select } from "../../../../components/ui/Select";
 import { CelebrationOverlay } from "../../../../components/ui/CelebrationOverlay";
@@ -24,6 +25,7 @@ const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
 const RATING_ROLES = ["SUPER_ADMIN", "ADMIN", "MANAGER", "TEAM_LEADER"];
 
 export default function LeadDetailPage({ params }) {
+  const router = useRouter();
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingStatus, setSavingStatus] = useState(false);
@@ -45,6 +47,13 @@ export default function LeadDetailPage({ params }) {
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [approvalActionLoading, setApprovalActionLoading] = useState(false);
   const [approvalMessage, setApprovalMessage] = useState(null);
+  const [toast, setToast] = useState(null); // { type: "success" | "error", message: string }
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(() => setToast(null), 2200);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -170,8 +179,16 @@ export default function LeadDetailPage({ params }) {
             setShowCelebration(true);
             setApprovalMessage("Marked WON. Revenue is now pending manager approval (72h window).");
             loadApproval();
+            showToast("success", "Status updated successfully");
+          }
+          if (!isWon) {
+            showToast("success", "Status updated successfully");
+            setTimeout(() => router.replace("/dashboard/leads"), 600);
           }
         }
+      })
+      .catch((e) => {
+        showToast("error", e?.response?.data?.message || "Failed to update status");
       })
       .finally(() => setSavingStatus(false));
   };
@@ -277,12 +294,29 @@ export default function LeadDetailPage({ params }) {
 
   return (
     <div className="min-w-0 space-y-4">
+      {toast?.message && (
+        <div className="fixed left-1/2 top-4 z-[9999] w-[min(92vw,28rem)] -translate-x-1/2">
+          <div
+            className={
+              "rounded-2xl px-4 py-3 text-sm shadow-lg ring-1 backdrop-blur " +
+              (toast.type === "success"
+                ? "bg-emerald-600/95 text-white ring-emerald-300/40"
+                : "bg-red-600/95 text-white ring-red-300/40")
+            }
+          >
+            {toast.message}
+          </div>
+        </div>
+      )}
       <CelebrationOverlay
         isOpen={showCelebration}
         title="Congratulations!"
-        message={`Deal won! ${lead.valueAmount ? `₹ ${Number(lead.valueAmount).toLocaleString("en-IN")} closed.` : "This lead is now marked as won."}`}
+        message={`Deal won! ${dealAmount ? `₹ ${Number(dealAmount).toLocaleString("en-IN")} closed.` : (lead.valueAmount ? `₹ ${Number(lead.valueAmount).toLocaleString("en-IN")} closed.` : "This lead is now marked as won.")}`}
         buttonText="Continue"
-        onClose={() => setShowCelebration(false)}
+        onClose={() => {
+          setShowCelebration(false);
+          router.replace("/dashboard/leads");
+        }}
         autoCloseDelay={6000}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
