@@ -29,7 +29,10 @@ export async function registerUser({ name, email, password, role = "USER", manag
   return { user, token };
 }
 
-export async function loginUser({ email, password }) {
+// Login with single-active-session support.
+// If hasActiveSession is true and forceTerminate is not set,
+// we throw a special error so the frontend can show a modal.
+export async function loginUser({ email, password, forceTerminate = false }) {
   const user = await User.findOne({ where: { email } });
   if (!user) {
     const error = new Error("Invalid email or password");
@@ -50,10 +53,24 @@ export async function loginUser({ email, password }) {
     throw error;
   }
 
+  const hasActiveSession = user.hasActiveSession ?? false;
+
+  if (hasActiveSession && !forceTerminate) {
+    const error = new Error("Session already active");
+    error.status = 409;
+    error.code = "SESSION_ALREADY_ACTIVE";
+    throw error;
+  }
+
+  const nextVersion = (user.tokenVersion ?? 0) + 1;
+  user.tokenVersion = nextVersion;
+  user.hasActiveSession = true;
+  await user.save();
+
   const token = signToken({
     id: user.id,
     role: user.role,
-    tokenVersion: user.tokenVersion ?? 0
+    tokenVersion: nextVersion
   });
 
   return { user, token };

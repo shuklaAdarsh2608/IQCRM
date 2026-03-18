@@ -1,6 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
-import { login, register } from "../controllers/authController.js";
+import { login, register, logout } from "../controllers/authController.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,9 +22,12 @@ router.post(
   [
     body("email").isEmail().withMessage("Valid email is required"),
     body("password").notEmpty().withMessage("Password is required")
+    // forceTerminate is optional boolean, no validation needed
   ],
   login
 );
+
+router.post("/logout", requireAuth, logout);
 
 export { router as authRouter };
 
