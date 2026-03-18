@@ -126,8 +126,10 @@ export function Topbar({ onMenuClick }) {
         </Link>
       </div>
 
-      {/* Nav tabs: hidden on mobile (use hamburger/sidebar); visible from md up */}
-      <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-2 py-0.5 text-xs font-medium text-slate-600 lg:flex lg:justify-center dark:text-slate-200">
+      {/* Nav tabs: single-line, scrolls instead of wrapping */}
+      <nav className="hidden min-w-0 flex-1 items-center justify-center py-0.5 text-xs font-medium text-slate-600 lg:flex dark:text-slate-200">
+        <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-nowrap items-center justify-center gap-2 px-1">
         {navItems.map((item) => {
           const active =
             pathname === item.href ||
@@ -147,6 +149,8 @@ export function Topbar({ onMenuClick }) {
             </Link>
           );
         })}
+          </div>
+        </div>
       </nav>
 
       <div className="flex items-center gap-3">
