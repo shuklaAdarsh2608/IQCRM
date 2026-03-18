@@ -55,6 +55,12 @@ User.init(
       defaultValue: 0,
       field: "token_version"
     },
+    hasActiveSession: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "has_active_session"
+    },
     smtpUser: {
       type: DataTypes.STRING(180),
       allowNull: true,
