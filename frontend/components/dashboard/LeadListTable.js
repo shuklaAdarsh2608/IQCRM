@@ -161,50 +161,8 @@ export function LeadListTable() {
         })
       : leads;
 
-  const showAssignedColumnFilters = isAdmin && !isLimitedView && effectiveTab !== TAB_MY_LEADS;
-
-  const filtered = showAssignedColumnFilters
-    ? baseForTab.filter((l) => {
-        const fullName = `${l.firstName || ""} ${l.lastName || ""}`.toLowerCase();
-        const ownerName = (l.owner?.name || "").toLowerCase();
-        const contact = (l.email || l.phone || "").toLowerCase();
-        const passesBaseFilters =
-          (!assignedFilters.name ||
-            fullName.includes(assignedFilters.name.trim().toLowerCase())) &&
-          (!assignedFilters.company ||
-            (l.company || "").toLowerCase().includes(assignedFilters.company.trim().toLowerCase())) &&
-          (!assignedFilters.status ||
-            (l.status || "").toLowerCase().includes(assignedFilters.status.trim().toLowerCase())) &&
-          (!assignedFilters.owner ||
-            ownerName.includes(assignedFilters.owner.trim().toLowerCase())) &&
-          (!assignedFilters.contact ||
-            contact.includes(assignedFilters.contact.trim().toLowerCase()));
-
-        if (!passesBaseFilters) return false;
-
-        // Apply dynamic per-header filters for imported extra columns
-        if (!l.extraData || typeof l.extraData !== "object") {
-          // If there is no extraData at all, ensure no extraAssignedFilters are active
-          return Object.values(extraAssignedFilters || {}).every(
-            (val) => !val || String(val).trim() === ""
-          );
-        }
-
-        for (const [col, value] of Object.entries(extraAssignedFilters || {})) {
-          const v = typeof value === "string" ? value.trim().toLowerCase() : "";
-          if (!v) continue;
-          const cell =
-            l.extraData && l.extraData[col] != null
-              ? String(l.extraData[col]).toLowerCase()
-              : "";
-          if (!cell.includes(v)) {
-            return false;
-          }
-        }
-
-        return true;
-      })
-    : baseForTab;
+  // Single search input only: rely on server-side searchQuery (top search bar)
+  const filtered = baseForTab;
 
   // Collect all extraData keys across current filtered leads so we can show all imported headers
   const extraColumns = Array.from(
@@ -280,14 +238,31 @@ export function LeadListTable() {
   };
 
   const statusBadgeClass = (status) => {
-    const s = (status || "").toUpperCase();
-    if (s === "WON")
-      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300";
-    if (s === "LOST" || s === "JUNK")
-      return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300";
-    if (s === "FRESH")
-      return "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-100";
-    if (["CONTACTED", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "RESCHEDULED"].includes(s))
+    const raw = String(status || "").trim();
+    const s = raw.toUpperCase();
+
+    // Match the badge palette shown in the screenshot
+    if (s === "FRESH") return "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-100";
+    if (s === "ACTIVE") return "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200";
+    if (s === "SCHEDULED") return "bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200";
+    if (s === "NO REPLY") return "bg-slate-800 text-white dark:bg-slate-700 dark:text-slate-50";
+    if (s === "SWITCHED OFF") return "bg-slate-800 text-white dark:bg-slate-700 dark:text-slate-50";
+    if (s === "NEGOTIATIONS" || s === "NEGOTIATION")
+      return "bg-sky-200 text-sky-900 dark:bg-sky-500/20 dark:text-sky-200";
+    if (s === "DEFERRED") return "bg-slate-200 text-slate-700 dark:bg-slate-600/40 dark:text-slate-100";
+    if (s === "ASKING FOR HIGH DISCOUNTS")
+      return "bg-orange-200 text-orange-900 dark:bg-orange-500/20 dark:text-orange-200";
+    if (s === "WON") return "bg-red-700 text-white dark:bg-red-500/30 dark:text-red-50";
+    if (s === "LOSS" || s === "LOST" || s === "JUNK")
+      return "bg-purple-700 text-white dark:bg-purple-500/25 dark:text-purple-100";
+    if (s === "WRONG NUMBER") return "bg-slate-200 text-slate-700 dark:bg-slate-600/40 dark:text-slate-100";
+    if (raw === "(Fresh)Web lead" || s === "(FRESH)WEB LEAD")
+      return "bg-violet-200 text-violet-900 dark:bg-violet-500/20 dark:text-violet-200";
+    if (raw === "Fresh (FB)" || s === "FRESH (FB)")
+      return "bg-blue-700 text-white dark:bg-blue-500/25 dark:text-blue-100";
+
+    // Existing buckets (keep consistent fallbacks)
+    if (["CONTACTED", "QUALIFIED", "PROPOSAL", "RESCHEDULED"].includes(s))
       return "bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200";
     return "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200";
   };
@@ -472,16 +447,16 @@ export function LeadListTable() {
                       Company name
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Designation
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      Email / phone
+                    </th>
+                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Status
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Rating
-                    </th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Owner
-                    </th>
-                    <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      Contact
                     </th>
                     <th className="whitespace-nowrap border-b border-slate-200 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:text-slate-300">
                       Remarks
@@ -508,78 +483,6 @@ export function LeadListTable() {
                   </>
                 )}
               </tr>
-              {showAssignedColumnFilters && (
-                <tr className="bg-slate-50/80 text-[11px] dark:bg-slate-900/80">
-                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                    <input
-                      value={assignedFilters.name}
-                      onChange={(e) =>
-                        setAssignedFilters((f) => ({ ...f, name: e.target.value }))
-                      }
-                      placeholder="Search name"
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
-                    />
-                  </th>
-                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                    <input
-                      value={assignedFilters.company}
-                      onChange={(e) =>
-                        setAssignedFilters((f) => ({ ...f, company: e.target.value }))
-                      }
-                      placeholder="Search company"
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
-                    />
-                  </th>
-                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                    <input
-                      value={assignedFilters.status}
-                      onChange={(e) =>
-                        setAssignedFilters((f) => ({ ...f, status: e.target.value }))
-                      }
-                      placeholder="Status"
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
-                    />
-                  </th>
-                  <th />
-                  <th />
-                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                    <input
-                      value={assignedFilters.owner}
-                      onChange={(e) =>
-                        setAssignedFilters((f) => ({ ...f, owner: e.target.value }))
-                      }
-                      placeholder="Owner"
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
-                    />
-                  </th>
-                  <th className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                    <input
-                      value={assignedFilters.contact}
-                      onChange={(e) =>
-                        setAssignedFilters((f) => ({ ...f, contact: e.target.value }))
-                      }
-                      placeholder="Email / phone"
-                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
-                    />
-                  </th>
-                  {extraColumns.map((col) => (
-                    <th key={col} className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                      <input
-                        value={extraAssignedFilters[col] || ""}
-                        onChange={(e) =>
-                          setExtraAssignedFilters((prev) => ({
-                            ...prev,
-                            [col]: e.target.value
-                          }))
-                        }
-                        placeholder={col}
-                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
-                      />
-                    </th>
-                  ))}
-                  {canBulkAssign && <th />}
-                </tr>
-              )}
             </thead>
             <tbody className="bg-white dark:bg-slate-900">
               {filtered.map((lead, idx) => {
@@ -588,10 +491,9 @@ export function LeadListTable() {
                 const limitedHighlight = isLimitedView
                   ? "bg-amber-50/70 border-l-4 border-amber-400 dark:bg-slate-800/80 dark:border-emerald-400"
                   : "";
-                const wonHighlight =
-                  !isLimitedView && isWon
-                    ? "won-row border-l-4 border-amber-400 dark:border-emerald-400"
-                    : "";
+                const wonHighlight = isWon
+                  ? "won-row border-l-4 border-amber-400 dark:border-emerald-400"
+                  : "";
                 const ownerNameAdminHidden =
                   lead.owner && ADMIN_ROLES.includes(lead.owner.role || "");
                 const ownerDisplay = ownerNameAdminHidden
@@ -611,6 +513,12 @@ export function LeadListTable() {
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.company || "—"}
                       </td>
+                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                        {lead.title || "—"}
+                      </td>
+                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || lead.phone || ""}>
+                        {lead.email || lead.phone || "—"}
+                      </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 dark:border-slate-800">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadgeClass(lead.status)}`}>
                           {lead.status}
@@ -618,12 +526,6 @@ export function LeadListTable() {
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
                         {lead.rating != null ? `${Number(lead.rating)} ★` : "—"}
-                      </td>
-                      <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                        {ownerDisplay}
-                      </td>
-                      <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || lead.phone || ""}>
-                        {lead.email || lead.phone || "—"}
                       </td>
                       <td className="max-w-[200px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.latestRemark || ""}>
                         {lead.latestRemark || "—"}

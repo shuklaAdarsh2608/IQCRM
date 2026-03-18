@@ -42,7 +42,10 @@ export function DashboardShell({ children, title, subtitle }) {
     <div className="min-h-screen bg-background px-2 py-4 text-slate-900 dark:text-slate-100 sm:px-4 sm:py-6">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="mx-auto w-full max-w-[1600px]">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar
+          sidebarOpen={sidebarOpen}
+          onMenuClick={() => setSidebarOpen((v) => !v)}
+        />
         <main className="min-w-0">
           {title || subtitle ? (
             <div className="mb-3">

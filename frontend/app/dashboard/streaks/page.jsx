@@ -105,7 +105,17 @@ export default function MyStreakPage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-300">CURRENT STREAK</p>
-              <p className="mt-1 text-3xl font-semibold text-slate-900 dark:text-slate-50">{current} days</p>
+              <p className="mt-1 flex items-center gap-2 text-3xl font-semibold text-slate-900 dark:text-slate-50">
+                <span>{current}</span>
+                <Flame
+                  className={
+                    "h-7 w-7 " +
+                    (status === "ACTIVE"
+                      ? "text-orange-500 animate-pulse"
+                      : "text-slate-400 dark:text-slate-300")
+                  }
+                />
+              </p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Longest: {longest} days · Approved wins: {wins}</p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-100">
@@ -126,14 +136,24 @@ export default function MyStreakPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-3xl font-semibold text-slate-900 dark:text-slate-50">{current}</p>
-                  <p className="text-[11px] font-semibold tracking-wide text-slate-500 dark:text-slate-400">DAYS</p>
+                  <div className="mt-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-wide text-slate-500 dark:text-slate-400">
+                    <Flame
+                      className={
+                        "h-3.5 w-3.5 " +
+                        (status === "ACTIVE"
+                          ? "text-orange-500 animate-pulse"
+                          : "text-slate-400 dark:text-slate-300")
+                      }
+                    />
+                    <span>STREAK</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Mini stats */}
-          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
               <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">PENDING</p>
               <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">{pending}</p>
@@ -145,18 +165,6 @@ export default function MyStreakPage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
               <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">REVENUE</p>
               <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">₹ {revenue.toLocaleString("en-IN")}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
-              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">ACTIVE LEADS</p>
-              <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-                {activeLeadCount == null ? "—" : activeLeadCount}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
-              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">WON LEADS</p>
-              <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-                {wonLeadCount == null ? "—" : wonLeadCount}
-              </p>
             </div>
           </div>
         </div>
@@ -176,6 +184,24 @@ export default function MyStreakPage() {
               <div className="h-2.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500" style={{ width: `${contributionSkill}%` }} />
             </div>
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{Math.round((contributionSkill / 100) * 10)} / 10</p>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+            <p className="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-300">LEADS</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">ACTIVE</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                  {activeLeadCount == null ? "—" : activeLeadCount}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/40">
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">WON</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                  {wonLeadCount == null ? "—" : wonLeadCount}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Menu, User } from "lucide-react";
+import { Bell, Menu, User, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -38,7 +38,7 @@ function normalizeRole(role) {
   return role;
 }
 
-export function Topbar({ onMenuClick }) {
+export function Topbar({ onMenuClick, sidebarOpen = false }) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState(null);
@@ -176,7 +176,7 @@ export function Topbar({ onMenuClick }) {
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
             aria-label="Open menu"
           >
-            <Menu className="h-5 w-5" />
+            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         )}
         <Link
@@ -191,7 +191,7 @@ export function Topbar({ onMenuClick }) {
               alt="IQLead"
               width={280}
               height={80}
-              className="h-24 w-auto object-contain dark:brightness-0 dark:invert"
+              className="h-11 w-auto max-w-[160px] object-contain sm:h-14 sm:max-w-none md:h-16 dark:brightness-0 dark:invert"
               priority
             />
           </div>
@@ -199,7 +199,12 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       {/* Nav tabs: single-line, scrolls instead of wrapping */}
-      <nav className="flex min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 lg:justify-center lg:text-xs dark:text-slate-200">
+      <nav
+        className={
+          "hidden min-w-0 flex-1 items-center justify-start py-0.5 text-[11px] font-medium text-slate-600 md:flex lg:justify-center lg:text-xs dark:text-slate-200 " +
+          (sidebarOpen ? "lg:hidden" : "")
+        }
+      >
         <div className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max flex-nowrap items-center gap-1.5 px-1 lg:mx-auto lg:gap-2">
             {navItemsForRole.map((item) => {

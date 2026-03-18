@@ -76,8 +76,7 @@ export default function NewLeadPage() {
       };
       const res = await api.post("/leads", payload);
       if (res.data?.success) {
-        const id = res.data?.data?.id;
-        router.replace(id ? `/dashboard/leads/${id}` : "/dashboard/leads");
+        router.replace("/dashboard/leads");
       } else {
         setError("Failed to create lead.");
       }
