@@ -50,7 +50,7 @@ async function buildPerformanceRows(currentUser, from, to) {
       ownerId: { [Op.in]: visibleIds },
       createdAt: { [Op.gte]: start, [Op.lt]: end }
     },
-    attributes: ["ownerId", "status", "valueAmount"]
+    attributes: ["ownerId", "status", "valueAmount", "revenueApprovalStatus"]
   });
 
   const byUser = {};
@@ -58,7 +58,7 @@ async function buildPerformanceRows(currentUser, from, to) {
     const id = l.ownerId;
     if (!byUser[id]) byUser[id] = { leads: 0, won: 0, revenue: 0 };
     byUser[id].leads += 1;
-    if (l.status === "WON") {
+    if (l.status === "WON" && l.revenueApprovalStatus === "APPROVED") {
       byUser[id].won += 1;
       byUser[id].revenue += Number(l.valueAmount || 0);
     }
