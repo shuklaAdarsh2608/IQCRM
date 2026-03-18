@@ -1,7 +1,42 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+/**
+ * Play a short cheer / success sound using Web Audio API (no external file).
+ */
+function playCheerSound() {
+  if (typeof window === "undefined" || (!window.AudioContext && !window.webkitAudioContext)) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+
+    const playTone = (freq, start, duration, gain = 0.25) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.frequency.setValueAtTime(freq, start);
+      osc.type = "sine";
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(gain, start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, start + duration);
+      osc.start(start);
+      osc.stop(start + duration);
+    };
+
+    // Cheer: quick ascending "ta-da" (C5, E5, G5, C6)
+    const f = [523.25, 659.25, 783.99, 1046.5];
+    f.forEach((freq, i) => {
+      playTone(freq, now + i * 0.12, 0.25, 0.2);
+    });
+    playTone(1046.5, now + 0.5, 0.35, 0.22);
+  } catch {
+    // ignore
+  }
+}
 
 const FLOATING_STARS = Array.from({ length: 24 }, (_, i) => ({
   id: i,
@@ -31,9 +66,18 @@ export function CelebrationOverlay({
   onClose,
   autoCloseDelay
 }) {
+  const hasPlayedCheer = useRef(false);
   const handleClose = useCallback(() => {
     if (typeof onClose === "function") onClose();
   }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen && !hasPlayedCheer.current) {
+      hasPlayedCheer.current = true;
+      playCheerSound();
+    }
+    if (!isOpen) hasPlayedCheer.current = false;
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || !autoCloseDelay || typeof onClose !== "function") return;
