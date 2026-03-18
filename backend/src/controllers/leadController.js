@@ -119,14 +119,31 @@ export async function listLeads(req, res, next) {
       where[Op.and] = where[Op.and] ? [...where[Op.and], { [Op.or]: searchConditions }] : [{ [Op.or]: searchConditions }];
     }
 
-    // Optional createdAt date range filter (for My leads date preferences)
+    // Date range filter: for "My leads" (current user's leads) use assigned date; otherwise use lead createdAt
     if (from && to) {
       const fromDate = new Date(from);
       const toDate = new Date(to);
       if (!Number.isNaN(fromDate.getTime()) && !Number.isNaN(toDate.getTime())) {
         const start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
         const end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() + 1);
-        where.createdAt = { [Op.gte]: start, [Op.lt]: end };
+
+        const isMyLeadsView = Number(where.ownerId) === Number(req.user.id);
+        if (isMyLeadsView) {
+          // Filter by when the lead was assigned to the current user (assigned date)
+          const assignments = await LeadAssignment.findAll({
+            where: {
+              toUserId: req.user.id,
+              assignedAt: { [Op.gte]: start, [Op.lt]: end }
+            },
+            attributes: ["leadId"],
+            raw: true
+          });
+          const leadIdsInRange = [...new Set(assignments.map((a) => a.leadId))];
+          where.id = leadIdsInRange.length > 0 ? { [Op.in]: leadIdsInRange } : { [Op.in]: [0] };
+        } else {
+          // Admin viewing others: filter by lead creation date
+          where.createdAt = { [Op.gte]: start, [Op.lt]: end };
+        }
       }
     }
 
