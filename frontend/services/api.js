@@ -25,6 +25,30 @@ if (typeof window !== "undefined") {
     }
     return config;
   });
+
+  // Global handler: if token becomes invalid (e.g. new login elsewhere),
+  // log out this tab and redirect to landing/login.
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      try {
+        const status = error?.response?.status;
+        const message = error?.response?.data?.message || "";
+
+        if (status === 401 && message.includes("Session expired")) {
+          window.localStorage.removeItem("iqlead_token");
+          window.localStorage.removeItem("iqlead_user");
+          // Redirect old session to landing; adjust if you prefer /login
+          window.location.href = "/landing";
+          return;
+        }
+      } catch {
+        // ignore and fall through
+      }
+
+      return Promise.reject(error);
+    }
+  );
 }
 
 export default api;
