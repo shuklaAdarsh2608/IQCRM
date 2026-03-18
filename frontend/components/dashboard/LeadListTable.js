@@ -52,6 +52,7 @@ export function LeadListTable() {
     owner: "",
     contact: ""
   });
+  const [extraAssignedFilters, setExtraAssignedFilters] = useState({});
   const [dateRange, setDateRange] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -161,7 +162,7 @@ export function LeadListTable() {
         const fullName = `${l.firstName || ""} ${l.lastName || ""}`.toLowerCase();
         const ownerName = (l.owner?.name || "").toLowerCase();
         const contact = (l.email || l.phone || "").toLowerCase();
-        return (
+        const passesBaseFilters =
           (!assignedFilters.name ||
             fullName.includes(assignedFilters.name.trim().toLowerCase())) &&
           (!assignedFilters.company ||
@@ -171,8 +172,31 @@ export function LeadListTable() {
           (!assignedFilters.owner ||
             ownerName.includes(assignedFilters.owner.trim().toLowerCase())) &&
           (!assignedFilters.contact ||
-            contact.includes(assignedFilters.contact.trim().toLowerCase()))
-        );
+            contact.includes(assignedFilters.contact.trim().toLowerCase()));
+
+        if (!passesBaseFilters) return false;
+
+        // Apply dynamic per-header filters for imported extra columns
+        if (!l.extraData || typeof l.extraData !== "object") {
+          // If there is no extraData at all, ensure no extraAssignedFilters are active
+          return Object.values(extraAssignedFilters || {}).every(
+            (val) => !val || String(val).trim() === ""
+          );
+        }
+
+        for (const [col, value] of Object.entries(extraAssignedFilters || {})) {
+          const v = typeof value === "string" ? value.trim().toLowerCase() : "";
+          if (!v) continue;
+          const cell =
+            l.extraData && l.extraData[col] != null
+              ? String(l.extraData[col]).toLowerCase()
+              : "";
+          if (!cell.includes(v)) {
+            return false;
+          }
+        }
+
+        return true;
       })
     : baseForTab;
 
@@ -530,7 +554,19 @@ export function LeadListTable() {
                     />
                   </th>
                   {extraColumns.map((col) => (
-                    <th key={col} />
+                    <th key={col} className="border-b border-slate-200 px-4 py-2 text-left text-slate-600 dark:border-slate-800 dark:text-slate-300">
+                      <input
+                        value={extraAssignedFilters[col] || ""}
+                        onChange={(e) =>
+                          setExtraAssignedFilters((prev) => ({
+                            ...prev,
+                            [col]: e.target.value
+                          }))
+                        }
+                        placeholder={col}
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] outline-none placeholder:text-slate-400 focus:border-orange-300 focus:ring-1 focus:ring-orange-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-400 dark:focus:ring-orange-400/40"
+                      />
+                    </th>
                   ))}
                   {canBulkAssign && <th />}
                 </tr>
