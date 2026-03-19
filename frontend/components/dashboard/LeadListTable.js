@@ -518,6 +518,11 @@ export function LeadListTable() {
                 const ownerDisplay = ownerNameAdminHidden
                   ? "—"
                   : (lead.owner?.name || "—");
+                const showPreviousOwnerBanner =
+                  ADMIN_ROLES.includes(userRole) &&
+                  lead.previousOwner &&
+                  lead.previousOwner.name &&
+                  !ownerNameAdminHidden;
                 return (
                   <tr
                     key={lead.id}
@@ -575,7 +580,14 @@ export function LeadListTable() {
                           : "—"}
                       </td>
                       <td className="whitespace-nowrap border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                        {ownerDisplay}
+                        <div className="flex flex-col gap-1">
+                          <span>{ownerDisplay}</span>
+                          {showPreviousOwnerBanner && (
+                            <span className="inline-block w-fit rounded-md bg-red-50 px-2 py-1 text-[11px] font-medium text-red-700 dark:bg-red-500/10 dark:text-red-300">
+                              This lead was previously assigned to {lead.previousOwner.name}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="max-w-[180px] truncate border-b border-slate-100 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300" title={lead.email || ""}>
                         {lead.email || "—"}

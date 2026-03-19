@@ -174,6 +174,7 @@ export async function listLeads(req, res, next) {
     const leadIds = rows.map((r) => r.id);
     let latestRemarkByLeadId = {};
     let lastAssignedAtByLeadId = {};
+    let previousOwnerByLeadId = {};
     if (leadIds.length > 0) {
       const { sequelize } = LeadRemark;
       const remarks = await LeadRemark.findAll({
@@ -187,16 +188,33 @@ export async function listLeads(req, res, next) {
         }
       });
 
+      const ownerIdByLeadId = rows.reduce((acc, r) => {
+        acc[r.id] = r.ownerId;
+        return acc;
+      }, {});
+
       // Attach most recent assignment timestamp per lead (for "assigned today" UI)
+      // Also attach previous owner name for admin viewers.
       const assignments = await LeadAssignment.findAll({
         where: { leadId: { [Op.in]: leadIds } },
-        attributes: ["leadId", "assignedAt"],
+        attributes: ["leadId", "assignedAt", "fromUserId", "toUserId"],
+        include: [
+          { model: User, as: "fromUser", attributes: ["id", "name"] }
+        ],
         order: [["assignedAt", "DESC"]],
-        raw: true
       });
       assignments.forEach((a) => {
-        if (lastAssignedAtByLeadId[a.leadId] === undefined) {
-          lastAssignedAtByLeadId[a.leadId] = a.assignedAt;
+        const plain = a.get ? a.get({ plain: true }) : a;
+        if (lastAssignedAtByLeadId[plain.leadId] === undefined) {
+          lastAssignedAtByLeadId[plain.leadId] = plain.assignedAt;
+        }
+        if (ADMIN_ROLES.includes(req.user.role) && previousOwnerByLeadId[plain.leadId] === undefined) {
+          const currentOwnerId = ownerIdByLeadId[plain.leadId];
+          const isLatestAssignmentForCurrentOwner =
+            currentOwnerId != null && plain.toUserId != null && Number(plain.toUserId) === Number(currentOwnerId);
+          if (isLatestAssignmentForCurrentOwner && plain.fromUserId != null && plain.fromUser?.name) {
+            previousOwnerByLeadId[plain.leadId] = { id: plain.fromUser.id, name: plain.fromUser.name };
+          }
         }
       });
     }
@@ -204,6 +222,9 @@ export async function listLeads(req, res, next) {
       const plain = row.get ? row.get({ plain: true }) : row;
       plain.latestRemark = latestRemarkByLeadId[row.id] || null;
       plain.assignedAt = lastAssignedAtByLeadId[row.id] || null;
+      if (ADMIN_ROLES.includes(req.user.role)) {
+        plain.previousOwner = previousOwnerByLeadId[row.id] || null;
+      }
       return plain;
     });
 
@@ -1075,6 +1096,8 @@ export async function importLeads(req, res, next) {
     const totalRows = rows.length;
     let successRows = 0;
     let failedRows = 0;
+    let reassignedRows = 0;
+    let alreadyAssignedRows = 0;
     const log = await ImportLog.create({
       userId: req.user.id,
       filename: req.file.originalname || "import",
@@ -1084,6 +1107,7 @@ export async function importLeads(req, res, next) {
       status: "PENDING"
     });
     const errors = [];
+    const matches = [];
     const mappedHeaders = new Set(
       Object.values(columnMap || {}).filter((h) => typeof h === "string" && h.trim() !== "")
     );
@@ -1152,7 +1176,8 @@ export async function importLeads(req, res, next) {
         extraData[key] = String(value).trim();
       });
       try {
-        // Skip duplicate leads by email or phone (do not import duplicates)
+        // If lead already exists (same email or phone), reassign it instead of importing a duplicate.
+        // This allows admin import to bring back leads that were previously assigned to other users.
         if ((email && email.length > 0) || (phone && phone.length > 0)) {
           const existing = await Lead.findOne({
             where: {
@@ -1160,14 +1185,48 @@ export async function importLeads(req, res, next) {
                 email && email.length > 0 ? { email } : null,
                 phone && phone.length > 0 ? { phone } : null
               ].filter(Boolean)
-            }
+            },
+            include: [{ model: User, as: "owner", attributes: ["id", "name"] }]
           });
           if (existing) {
-            failedRows++;
-            errors.push({
+            const fromUserId = existing.ownerId || null;
+            const toUserId = assignUser.id;
+            if (fromUserId && Number(fromUserId) !== Number(toUserId)) {
+              const oldOwner = fromUserId
+                ? await User.findByPk(fromUserId, { attributes: ["name"] })
+                : null;
+              const oldStatus = existing.status;
+              existing.ownerId = toUserId;
+              existing.status = "FRESH";
+              existing.updatedBy = req.user.id;
+              await existing.save();
+              await LeadAssignment.create({
+                leadId: existing.id,
+                fromUserId: fromUserId || null,
+                toUserId,
+                assignedBy: req.user.id
+              });
+              await logLeadAudit(existing.id, req.user.id, "ownerId", oldOwner?.name ?? "—", assignUser.name);
+              if (oldStatus !== "FRESH") {
+                await logLeadAudit(existing.id, req.user.id, "status", oldStatus, "FRESH");
+              }
+              reassignedRows++;
+            }
+            if (!fromUserId || Number(fromUserId) === Number(toUserId)) {
+              alreadyAssignedRows++;
+            }
+            // Keep a small report so admin can see which user it was assigned to.
+            matches.push({
               row: i + 2,
-              message: "Duplicate lead (same email or phone already exists)"
+              leadId: existing.id,
+              matchedBy: email ? "email" : "phone",
+              email: email || existing.email || null,
+              phone: phone || existing.phone || null,
+              previousOwner: existing.owner?.name || null,
+              newOwner: assignUser.name
             });
+            // Count as success (processed) even if already assigned to same user.
+            successRows++;
             continue;
           }
         }
@@ -1215,7 +1274,12 @@ export async function importLeads(req, res, next) {
         successRows,
         failedRows,
         status: log.status,
-        errors: errors.slice(0, 50)
+        errors: errors.slice(0, 50),
+        // These are rows that matched an existing lead (by email/phone) and were processed.
+        // Limit to keep response small.
+        matchedExistingLeads: matches.slice(0, 50),
+        reassignedRows,
+        alreadyAssignedRows
       }
     });
   } catch (err) {

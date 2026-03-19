@@ -12,7 +12,7 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
-  const isDark = theme === "dark";
+  const isDark = theme === "light";
 
   return (
     <button

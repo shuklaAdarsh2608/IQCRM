@@ -178,8 +178,6 @@ export default function ImportLeadsPage() {
           setFile(null);
           setHeaders([]);
           setColumnMap({});
-          // After a successful import, go back to leads list so the user sees new rows
-          router.replace("/dashboard/leads");
         }
       })
       .catch((err) => {
@@ -329,6 +327,54 @@ export default function ImportLeadsPage() {
           <p className="text-xs text-slate-600">
             Total: {result.totalRows} · Success: {result.successRows} · Failed: {result.failedRows}
           </p>
+          {(result.reassignedRows != null || result.alreadyAssignedRows != null) && (
+            <p className="mt-1 text-xs text-slate-600">
+              Reassigned: {result.reassignedRows || 0} · Already assigned to selected user:{" "}
+              {result.alreadyAssignedRows || 0}
+            </p>
+          )}
+          {Array.isArray(result.matchedExistingLeads) && result.matchedExistingLeads.length > 0 && (
+            <div className="mt-3">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Matched existing leads (by email/phone)
+              </h3>
+              <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="sticky top-0 bg-slate-100 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                    <tr>
+                      <th className="px-3 py-2">Row</th>
+                      <th className="px-3 py-2">Lead</th>
+                      <th className="px-3 py-2">Matched</th>
+                      <th className="px-3 py-2">Previously assigned</th>
+                      <th className="px-3 py-2">New assigned</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.matchedExistingLeads.map((m, idx) => (
+                      <tr key={idx} className="border-t border-slate-100">
+                        <td className="px-3 py-2">{m.row}</td>
+                        <td className="px-3 py-2 font-mono">#{m.leadId}</td>
+                        <td className="px-3 py-2">
+                          {m.matchedBy === "email" ? (m.email || "—") : (m.phone || "—")}
+                        </td>
+                        <td className="px-3 py-2">{m.previousOwner || "—"}</td>
+                        <td className="px-3 py-2">{m.newOwner || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.replace("/dashboard/leads")}
+                  className="rounded-lg bg-orange-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-orange-600"
+                >
+                  Go to Leads
+                </button>
+              </div>
+            </div>
+          )}
           {result.errors?.length > 0 && (
             <ul className="mt-2 max-h-32 overflow-y-auto text-xs text-red-600">
               {result.errors.map((e, i) => (
