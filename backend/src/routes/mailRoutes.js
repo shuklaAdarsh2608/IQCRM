@@ -17,7 +17,25 @@ function getMailer(authUser, authPass) {
     host,
     port,
     secure: port === 465,
-    auth: { user: authUser, pass: authPass }
+    auth: { user: authUser, pass: authPass },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000
+  });
+}
+
+function withTimeout(promise, timeoutMs, timeoutMessage) {
+  let timer = null;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(timeoutMessage);
+      err.code = "SMTP_TIMEOUT";
+      reject(err);
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer) clearTimeout(timer);
   });
 }
 
@@ -70,13 +88,17 @@ router.post(
       }
 
       try {
-        const info = await mailer.sendMail({
-          from: `${userName} <${authUser}>`,
-          replyTo: userEmail || authUser,
-          to,
-          subject,
-          text
-        });
+        const info = await withTimeout(
+          mailer.sendMail({
+            from: `${userName} <${authUser}>`,
+            replyTo: userEmail || authUser,
+            to,
+            subject,
+            text
+          }),
+          25000,
+          "SMTP request timed out. Please verify SMTP host/port and mailbox credentials."
+        );
 
         await log.update(
           { status: "SENT", providerMessageId: info?.messageId || null },
@@ -85,7 +107,8 @@ router.post(
         return res.json({ success: true, data: { id: log.id, sent: true } });
       } catch (e) {
         await log.update({ status: "FAILED" }, { silent: true });
-        return res.status(500).json({ success: false, message: e?.message || "Failed to send email" });
+        const status = e?.code === "SMTP_TIMEOUT" ? 504 : 500;
+        return res.status(status).json({ success: false, message: e?.message || "Failed to send email" });
       }
     } catch (err) {
       next(err);
