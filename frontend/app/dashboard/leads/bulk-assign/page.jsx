@@ -9,6 +9,7 @@ import { Select } from "../../../../components/ui/Select";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN"];
 const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 350;
 
 export default function BulkAssignLeadsPage() {
   const router = useRouter();
@@ -34,6 +35,25 @@ export default function BulkAssignLeadsPage() {
     contact: "",
     owner: ""
   });
+  const [serverSearch, setServerSearch] = useState("");
+
+  // Debounce filters -> server-side search across all pages (backend search ignores paging).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const parts = [
+        columnFilters.name,
+        columnFilters.company,
+        columnFilters.status,
+        columnFilters.contact,
+        columnFilters.owner
+      ]
+        .map((s) => (s || "").trim())
+        .filter(Boolean);
+      setServerSearch(parts.join(" "));
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [columnFilters]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -63,6 +83,9 @@ export default function BulkAssignLeadsPage() {
       } else if (filterOwnerId) {
         params.set("ownerId", filterOwnerId);
       }
+      if (serverSearch) {
+        params.set("search", serverSearch);
+      }
       api
         .get(`/leads?${params.toString()}`)
         .then((res) => {
@@ -89,7 +112,7 @@ export default function BulkAssignLeadsPage() {
         })
         .finally(() => setLoadingLeads(false));
     },
-    [allowed, showPoolOnly, filterOwnerId]
+    [allowed, showPoolOnly, filterOwnerId, serverSearch]
   );
 
   useEffect(() => {
@@ -168,9 +191,10 @@ export default function BulkAssignLeadsPage() {
 
   const selectedUserName = users.find((u) => String(u.id) === ownerId)?.name ?? "user";
 
+  // Apply light client-side filtering on top of server search results.
   const filteredLeads = leads.filter((lead) => {
     const fullName = `${lead.firstName || ""} ${lead.lastName || ""}`.toLowerCase();
-    const contact = (lead.email || lead.phone || "").toLowerCase();
+    const contact = `${lead.email || ""} ${lead.phone || ""}`.toLowerCase();
     const ownerName = (lead.owner?.name || "").toLowerCase();
     const company = (lead.company || "").toLowerCase();
     const status = (lead.status || "").toLowerCase();
@@ -481,7 +505,7 @@ export default function BulkAssignLeadsPage() {
               </table>
             </div>
 
-            {totalPages > 1 && (
+            {!serverSearch && totalPages > 1 && (
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50/50 px-4 py-3">
                 <button
                   type="button"
