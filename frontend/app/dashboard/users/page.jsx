@@ -403,78 +403,122 @@ export default function UsersPage() {
       </div>
 
       {smtpUser && (
-        <div className="rounded-2xl bg-white/80 p-4 text-sm text-slate-700 shadow-sm dark:bg-slate-900/85 dark:text-slate-100">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                SMTP credentials
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {smtpUser.name} ({smtpUser.email})
-              </p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSmtpUser(null);
+              setSmtpForm({ smtpUser: "", smtpPassword: "" });
+              setSmtpError("");
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="smtp-modal-title"
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900 dark:text-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 id="smtp-modal-title" className="text-base font-semibold text-slate-900 dark:text-slate-50">
+                  SMTP credentials
+                </h2>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  {smtpUser.name} ({smtpUser.email})
+                </p>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                onClick={() => {
+                  setSmtpUser(null);
+                  setSmtpForm({ smtpUser: "", smtpPassword: "" });
+                  setSmtpError("");
+                }}
+                aria-label="Close"
+              >
+                Close
+              </button>
             </div>
-            <button
-              type="button"
-              className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-              onClick={() => {
-                setSmtpUser(null);
-                setSmtpForm({ smtpUser: "", smtpPassword: "" });
+            <form
+              className="space-y-3"
+              onSubmit={async (e) => {
+                e.preventDefault();
                 setSmtpError("");
+                if (!smtpForm.smtpPassword || smtpForm.smtpPassword.length < 4) {
+                  setSmtpError("SMTP password is required.");
+                  return;
+                }
+                setSmtpLoading(true);
+                try {
+                  await setUserSmtp(smtpUser.id, smtpForm);
+                  setSmtpUser(null);
+                  setSmtpForm({ smtpUser: "", smtpPassword: "" });
+                  setSmtpError("");
+                  await loadUsers();
+                } catch (err) {
+                  setSmtpError(err?.response?.data?.message || "Failed to save SMTP credentials.");
+                } finally {
+                  setSmtpLoading(false);
+                }
               }}
             >
-              Close
-            </button>
+              <div>
+                <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                  SMTP user (email)
+                </label>
+                <input
+                  type="email"
+                  placeholder="SMTP user (email)"
+                  value={smtpForm.smtpUser}
+                  onChange={(e) => setSmtpForm((p) => ({ ...p, smtpUser: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-orange-500 dark:focus:ring-orange-500/30"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                  Mailbox password / app password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Mailbox password / app password"
+                  value={smtpForm.smtpPassword}
+                  onChange={(e) => setSmtpForm((p) => ({ ...p, smtpPassword: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-orange-500 dark:focus:ring-orange-500/30"
+                />
+              </div>
+              {smtpError && (
+                <p className="text-xs text-red-500 dark:text-red-400" role="alert">
+                  {smtpError}
+                </p>
+              )}
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Use each user&apos;s Hostinger mailbox password (or app password). This is required for sending as that user.
+              </p>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  onClick={() => {
+                    setSmtpUser(null);
+                    setSmtpForm({ smtpUser: "", smtpPassword: "" });
+                    setSmtpError("");
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={smtpLoading}
+                  className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-medium text-white shadow-sm disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-500/90"
+                >
+                  {smtpLoading ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
           </div>
-          <form
-            className="grid gap-3 md:grid-cols-[repeat(2,minmax(0,1fr))_auto]"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setSmtpError("");
-              if (!smtpForm.smtpPassword || smtpForm.smtpPassword.length < 4) {
-                setSmtpError("SMTP password is required.");
-                return;
-              }
-              setSmtpLoading(true);
-              try {
-                await setUserSmtp(smtpUser.id, smtpForm);
-                setSmtpUser(null);
-                setSmtpForm({ smtpUser: "", smtpPassword: "" });
-                await loadUsers();
-              } catch (err) {
-                setSmtpError(err?.response?.data?.message || "Failed to save SMTP credentials.");
-              } finally {
-                setSmtpLoading(false);
-              }
-            }}
-          >
-            <input
-              type="email"
-              placeholder="SMTP user (email)"
-              value={smtpForm.smtpUser}
-              onChange={(e) => setSmtpForm((p) => ({ ...p, smtpUser: e.target.value }))}
-              className="rounded-xl border border-border bg-slate-50 px-3 py-2 text-xs outline-none dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-            />
-            <input
-              type="password"
-              placeholder="Mailbox password / app password"
-              value={smtpForm.smtpPassword}
-              onChange={(e) => setSmtpForm((p) => ({ ...p, smtpPassword: e.target.value }))}
-              className="rounded-xl border border-border bg-slate-50 px-3 py-2 text-xs outline-none dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-            />
-            <button
-              type="submit"
-              disabled={smtpLoading}
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-medium text-white shadow-sm disabled:opacity-50 dark:bg-emerald-500 dark:hover:bg-emerald-400"
-            >
-              {smtpLoading ? "Saving..." : "Save"}
-            </button>
-          </form>
-          <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-            Use each user&apos;s Hostinger mailbox password (or app password). This is required for sending as that user.
-          </p>
-          {smtpError && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">{smtpError}</p>
-          )}
         </div>
       )}
     </div>
