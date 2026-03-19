@@ -199,15 +199,15 @@ export default function BulkAssignLeadsPage() {
     const company = (lead.company || "").toLowerCase();
     const status = (lead.status || "").toLowerCase();
 
+    const nameQuery = (columnFilters.name || "").trim().toLowerCase();
+    const contactQuery = (columnFilters.contact || "").trim().toLowerCase();
     return (
-      (!columnFilters.name ||
-        fullName.includes(columnFilters.name.trim().toLowerCase())) &&
+      (!nameQuery || fullName.includes(nameQuery) || contact.includes(nameQuery)) &&
       (!columnFilters.company ||
         company.includes(columnFilters.company.trim().toLowerCase())) &&
       (!columnFilters.status ||
         status.includes(columnFilters.status.trim().toLowerCase())) &&
-      (!columnFilters.contact ||
-        contact.includes(columnFilters.contact.trim().toLowerCase())) &&
+      (!contactQuery || contact.includes(contactQuery)) &&
       (!columnFilters.owner ||
         ownerName.includes(columnFilters.owner.trim().toLowerCase()))
     );

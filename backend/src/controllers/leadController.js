@@ -758,6 +758,9 @@ export async function updateLead(req, res, next) {
       previous[key] = lead[key] != null ? lead[key] : "";
     }
     previous.ownerId = lead.ownerId;
+    previous.revenueApprovalStatus = lead.revenueApprovalStatus;
+    previous.wonAt = lead.wonAt;
+    previous.wonAmount = lead.wonAmount;
 
     for (const key of allowed) {
       if (req.body[key] !== undefined) {
@@ -781,6 +784,25 @@ export async function updateLead(req, res, next) {
     lead.updatedBy = userId;
     await lead.save();
 
+    // If an admin directly sets a lead to WON via "Update lead",
+    // make it count for Revenue dashboard/Leaderboard by approving revenue immediately.
+    const isAdminUpdater = ADMIN_ROLES.includes(req.user.role);
+    const statusWasChangedToWon =
+      req.body.status !== undefined &&
+      String(lead.status || "").toUpperCase() === "WON" &&
+      String(previous.status || "").toUpperCase() !== "WON";
+    if (isAdminUpdater && statusWasChangedToWon) {
+      const amount = Number(lead.valueAmount || 0);
+      if (Number.isFinite(amount) && amount > 0) {
+        lead.wonAt = lead.wonAt || new Date();
+        lead.wonAmount = lead.wonAmount != null ? lead.wonAmount : amount;
+        lead.revenueApprovalStatus = "APPROVED";
+        lead.streakCounted = true;
+        lead.approvalDeadlineAt = null;
+        await lead.save();
+      }
+    }
+
     for (const key of allowed) {
       if (req.body[key] !== undefined) {
         const oldVal = previous[key];
@@ -798,6 +820,15 @@ export async function updateLead(req, res, next) {
         User.findByPk(lead.ownerId, { attributes: ["name"] })
       ]);
       await logLeadAudit(lead.id, userId, "ownerId", oldOwner?.name ?? "—", newOwner?.name ?? "—");
+    }
+    if (isAdminUpdater && statusWasChangedToWon && previous.revenueApprovalStatus !== lead.revenueApprovalStatus) {
+      await logLeadAudit(
+        lead.id,
+        userId,
+        "revenueApprovalStatus",
+        previous.revenueApprovalStatus ?? "—",
+        lead.revenueApprovalStatus ?? "—"
+      );
     }
 
     const updated = await Lead.findByPk(lead.id, {

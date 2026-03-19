@@ -2,6 +2,13 @@ import { registerUser, loginUser } from "../services/authService.js";
 import { ActivityLog } from "../models/ActivityLog.js";
 import { User } from "../models/User.js";
 
+function getClientIp(req) {
+  const xff = req.headers?.["x-forwarded-for"];
+  const first = Array.isArray(xff) ? xff[0] : (typeof xff === "string" ? xff.split(",")[0] : "");
+  const ip = (first || req.ip || "").trim();
+  return ip || "unknown";
+}
+
 export async function register(req, res, next) {
   try {
     const { name, email, password, role, managerId } = req.body;
@@ -40,7 +47,7 @@ export async function login(req, res, next) {
       await ActivityLog.create({
         userId: user.id,
         action: "LOGIN",
-        details: `Logged in from ${req.ip || "unknown IP"}`
+        details: `Logged in · IP ${getClientIp(req)}`
       });
     } catch {
       // do not block login on activity log failure

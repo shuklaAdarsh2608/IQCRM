@@ -14,6 +14,16 @@ const EVENT_LABELS = {
   NOTE_ADDED: "Note added"
 };
 
+function extractIp(details) {
+  const text = typeof details === "string" ? details : "";
+  if (!text) return "";
+  // IPv4 (simple) or IPv6 (simple) matcher
+  const m =
+    text.match(/\b(?:(?:\d{1,3}\.){3}\d{1,3})\b/) ||
+    text.match(/\b(?:[a-fA-F0-9]{0,4}:){2,7}[a-fA-F0-9]{0,4}\b/);
+  return m ? m[0] : "";
+}
+
 export default function ActivityLogPage() {
   const [role, setRole] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -193,6 +203,11 @@ export default function ActivityLogPage() {
                 {log.details && (
                   <p className="mt-1 line-clamp-3 text-[11px] text-slate-500 dark:text-slate-400">
                     {log.details}
+                  </p>
+                )}
+                {extractIp(log.details) && (
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    IP: <span className="font-mono">{extractIp(log.details)}</span>
                   </p>
                 )}
               </div>
