@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Mail, Calendar, MessageCircle } from "lucide-react";
+import api from "../../../../services/api";
 
 const integrations = [
   {
@@ -9,7 +11,7 @@ const integrations = [
     name: "Email",
     description: "Connect your email to sync conversations and send notifications from IQLead.",
     icon: Mail,
-    available: false
+    available: true
   },
   {
     id: "calendar",
@@ -28,6 +30,51 @@ const integrations = [
 ];
 
 export default function SettingsIntegrationsPage() {
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpPassword, setSmtpPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Prefill SMTP username with current user's email
+    const loadMe = async () => {
+      try {
+        const res = await api.get("/users/me");
+        const data = res?.data?.data;
+        if (data?.email && !smtpUser) {
+          setSmtpUser(data.email);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSaveSmtp = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setError("");
+    setSaving(true);
+    try {
+      await api.post("/users/me/smtp", {
+        smtpUser: smtpUser || undefined,
+        smtpPassword
+      });
+      setMessage("Email credentials saved. IQLead can now send mail using your account.");
+      setSmtpPassword("");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        "Unable to save email credentials. Please check your SMTP password.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
@@ -49,6 +96,8 @@ export default function SettingsIntegrationsPage() {
       <section className="space-y-4">
         {integrations.map((item) => {
           const Icon = item.icon;
+          const isEmail = item.id === "email";
+
           return (
             <div
               key={item.id}
@@ -65,7 +114,7 @@ export default function SettingsIntegrationsPage() {
                     </h2>
                     {item.available ? (
                       <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
-                        Active
+                        Available
                       </span>
                     ) : (
                       <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-200">
@@ -76,11 +125,61 @@ export default function SettingsIntegrationsPage() {
                   <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-300">
                     {item.description}
                   </p>
-                  {!item.available && (
+
+                  {isEmail ? (
+                    <form className="mt-4 space-y-3 text-sm" onSubmit={handleSaveSmtp}>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                          SMTP username / From email
+                        </label>
+                        <input
+                          type="email"
+                          value={smtpUser}
+                          onChange={(e) => setSmtpUser(e.target.value)}
+                          placeholder="you@example.com"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-500 dark:focus:ring-orange-500/30"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                          SMTP password
+                        </label>
+                        <input
+                          type="password"
+                          value={smtpPassword}
+                          onChange={(e) => setSmtpPassword(e.target.value)}
+                          placeholder="App-specific password for your mailbox"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-orange-500 dark:focus:ring-orange-500/30"
+                          required
+                        />
+                      </div>
+                      {message && (
+                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                          {message}
+                        </p>
+                      )}
+                      {error && (
+                        <p className="text-[11px] text-red-500" role="alert">
+                          {error}
+                        </p>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={saving || !smtpPassword}
+                        className="mt-1 inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60 dark:bg-orange-500 dark:hover:bg-orange-600"
+                      >
+                        {saving ? "Saving..." : "Save email credentials"}
+                      </button>
+                      <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                        Your password is encrypted with a server-side key and is only used to send
+                        email from IQLead.
+                      </p>
+                    </form>
+                  ) : !item.available ? (
                     <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
                       This integration will be available in a future update.
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
